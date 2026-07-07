@@ -1,5 +1,9 @@
+-- init.sql
+DROP TABLE IF EXISTS file_permissions;
+DROP TABLE IF EXISTS files;
+
+DROP TABLE IF EXISTS "session";
 DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS session;
 
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
