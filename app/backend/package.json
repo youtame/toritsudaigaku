@@ -1,0 +1,31 @@
+{
+    "name": "app",
+    "version": "1.0.0",
+    "description": "",
+    "license": "ISC",
+    "author": "",
+    "type": "module",
+    "main": "index.ts",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "dev": "tsx watch src/index.ts",
+        "build": "tsc",
+        "start": "node dist/index.js"
+    },
+    "dependencies": {
+        "connect-pg-simple": "^10.0.0",
+        "cors": "^2.8.6",
+        "dotenv": "^17.4.2",
+        "express": "^5.2.1",
+        "express-session": "^1.19.0",
+        "google-auth-library": "^10.6.2",
+        "helmet": "^8.2.0",
+        "multer": "^2.1.1",
+        "pg": "^8.20.0"
+    },
+    "devDependencies": {
+        "@types/cors": "^2.8.19",
+        "tsx": "^4.21.0",
+        "typescript": "^6.0.3"
+    }
+}
