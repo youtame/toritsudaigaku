@@ -9,7 +9,9 @@ import { eq } from "drizzle-orm"; // Drizzle Function
 
 import { pool, db } from "./db.ts"; // Formated Drizzle
 import { users } from "./db/schema.ts"; // Schema File
+
 import authRouter from "./routes/auth.ts";
+import fileRouter from "./routes/file.ts";
 
 declare module "express-session" {
     interface SessionData {
@@ -97,6 +99,7 @@ app.use(
 
 // Routes
 app.use("/auth", authRouter);
+app.use("/api/files", fileRouter);
 
 // Current User API
 app.get("/api/me", async (req, res, next) => {
