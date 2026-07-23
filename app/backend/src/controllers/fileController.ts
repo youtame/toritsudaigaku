@@ -202,4 +202,111 @@ export const fileController = {
             return res.status(500).json({ error: "Failed to delete file" });
         }
     },
+
+    /**
+     * Get a presigned download URL for a specific file (if user has access).
+     */
+    async getDownloadUrl(req: Request, res: Response) {
+        try {
+            const userId = req.session.userId;
+            const { fileId } = req.params;
+
+            if (!userId) {
+                return res.status(401).json({ error: "Unauthorized" });
+            }
+
+            // Check if user has permission to access this file
+            const [permission] = await db
+                .select({
+                    s3Key: files.s3Key,
+                    originalName: files.originalName,
+                })
+                .from(files)
+                .innerJoin(
+                    filePermissions,
+                    eq(files.id, filePermissions.fileId),
+                )
+                .where(
+                    and(
+                        eq(files.id, fileId),
+                        eq(filePermissions.userId, userId),
+                    ),
+                );
+
+            if (!permission) {
+                return res
+                    .status(403)
+                    .json({ error: "Access denied or file not found" });
+            }
+
+            // Generate presigned download URL
+            const downloadUrl = await s3Service.getDownloadUrl(
+                permission.s3Key,
+                permission.originalName,
+            );
+
+            return res.status(200).json({ downloadUrl });
+        } catch (error) {
+            console.error("Error getting download URL:", error);
+            return res
+                .status(500)
+                .json({ error: "Failed to generate download URL" });
+        }
+    },
+
+    /**
+     * Revoke file access permission from a specific user.
+     */
+    async revokePermission(req: Request, res: Response) {
+        try {
+            const currentUserId = req.session.userId;
+            const { fileId, targetUserId } = req.params;
+
+            if (!currentUserId) {
+                return res.status(401).json({ error: "Unauthorized" });
+            }
+
+            // Verify that the requester is the owner of the file
+            const [file] = await db
+                .select()
+                .from(files)
+                .where(
+                    and(eq(files.id, fileId), eq(files.userId, currentUserId)),
+                );
+
+            if (!file) {
+                return res
+                    .status(403)
+                    .json({ error: "Forbidden: You do not own this file" });
+            }
+
+            // Cannot revoke permission from oneself (owner)
+            if (targetUserId === currentUserId) {
+                return res
+                    .status(400)
+                    .json({
+                        error: "Cannot revoke permission from the file owner",
+                    });
+            }
+
+            // Delete permission record for target user
+            await db
+                .delete(filePermissions)
+                .where(
+                    and(
+                        eq(filePermissions.fileId, fileId),
+                        eq(filePermissions.userId, targetUserId),
+                    ),
+                );
+
+            return res
+                .status(200)
+                .json({ message: "Permission revoked successfully" });
+        } catch (error) {
+            console.error("Error revoking permission:", error);
+            return res
+                .status(500)
+                .json({ error: "Failed to revoke permission" });
+        }
+    },
 };

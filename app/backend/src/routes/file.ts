@@ -24,4 +24,13 @@ router.post("/:fileId/permissions", fileController.shareFilePermission);
 
 router.delete("/:fileId", fileController.deleteFile);
 
+// 個別ダウンロードURL取得
+router.get("/:fileId/download-url", fileController.getDownloadUrl);
+
+// 権限削除 (共有解除)
+router.delete(
+    "/:fileId/permissions/:targetUserId",
+    fileController.revokePermission,
+);
+
 export default router;
