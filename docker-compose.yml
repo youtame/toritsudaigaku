@@ -1,59 +1,64 @@
 services:
-  # ── FRONTEND & REVERSE PROXY (VUE 3 + VITE) ──
-  vue-app:
-    build:
-      context: ./app/frontend
-    restart: unless-stopped
-    ports:
-      - "5173:5173"
-    volumes:
-      - ./app/frontend:/app
-      - /app/node_modules
-    env_file:
-      - .env
-    networks:
-      - toritsudaigaku-network
-    tty: true
+    # ── FRONTEND (NUXT 3) ──
+    nuxt-app:
+        build:
+            context: ./app/frontend
+        restart: unless-stopped
+        ports:
+            - "3001:3000"
+        volumes:
+            - ./app/frontend:/app
+            - /app/node_modules
+        environment:
+            - HOST=0.0.0.0
+            - PORT=3000
+            - NUXT_PUBLIC_API_BASE=http://localhost:3000
+            - NUXT_API_BASE_SERVER=http://app:3000
+        env_file:
+            - .env
+        networks:
+            - toritsudaigaku-network
+        tty: true
 
-  # ── BACKEND (NODE.JS / EXPRESS + TYPESCRIPT) ──
-  app:
-    build:
-      context: ./app/backend
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    depends_on:
-      - db
-    volumes:
-      - ./app/backend:/usr/src/app
-      - /usr/src/app/node_modules
-    environment:
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_USER=${DB_USER:-genius}
-      - DB_PASSWORD=${DB_PASSWORD:-tensai102do}
-      - DB_NAME=${DB_NAME:-toritsudaigaku_secure_db}
-      - DATABASE_URL=postgresql://${DB_USER:-genius}:${DB_PASSWORD:-tensai102do}@db:5432/${DB_NAME:-toritsudaigaku_secure_db}
-    env_file:
-      - .env
-    networks:
-      - toritsudaigaku-network
-    tty: true
+    # ── BACKEND (NODE.JS / EXPRESS + TYPESCRIPT) ──
+    app:
+        build:
+            context: ./app/backend
+        restart: unless-stopped
+        ports:
+            - "3000:3000"
+        depends_on:
+            - db
+        volumes:
+            - ./app/backend:/usr/src/app
+            - /usr/src/app/node_modules
+        environment:
+            - DB_HOST=db
+            - DB_PORT=5432
+            - DB_USER=${DB_USER:-genius}
+            - DB_PASSWORD=${DB_PASSWORD:-tensai102do}
+            - DB_NAME=${DB_NAME:-toritsudaigaku_secure_db}
+            - DATABASE_URL=postgresql://${DB_USER:-genius}:${DB_PASSWORD:-tensai102do}@db:5432/${DB_NAME:-toritsudaigaku_secure_db}
+        env_file:
+            - .env
+        networks:
+            - toritsudaigaku-network
+        tty: true
 
-  # ── DATABASE (POSTGRESQL) ──
-  db:
-    image: postgres:16-alpine
-    restart: unless-stopped
-    environment:
-      - POSTGRES_USER=${DB_USER:-genius}
-      - POSTGRES_PASSWORD=${DB_PASSWORD:-tensai102do}
-      - POSTGRES_DB=${DB_NAME:-toritsudaigaku_secure_db}
-    volumes:
-      - ./db_data:/var/lib/postgresql/data
-      - ./initdb.d:/docker-entrypoint-initdb.d
-    networks:
-      - toritsudaigaku-network
+    # ── DATABASE (POSTGRESQL) ──
+    db:
+        image: postgres:16-alpine
+        restart: unless-stopped
+        environment:
+            - POSTGRES_USER=${DB_USER:-genius}
+            - POSTGRES_PASSWORD=${DB_PASSWORD:-tensai102do}
+            - POSTGRES_DB=${DB_NAME:-toritsudaigaku_secure_db}
+        volumes:
+            - ./db_data:/var/lib/postgresql/data
+            - ./initdb.d:/docker-entrypoint-initdb.d
+        networks:
+            - toritsudaigaku-network
 
 networks:
-  toritsudaigaku-network:
-    driver: bridge
+    toritsudaigaku-network:
+        driver: bridge
