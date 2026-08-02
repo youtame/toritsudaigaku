@@ -76,7 +76,7 @@
 
             <v-list-item
                 v-if="isNotHome"
-                @click="$emit('logout')"
+                @click="logout"
                 color="error"
                 class="text-error"
             >
@@ -95,11 +95,7 @@
 import { computed } from "vue";
 import { useRoute } from "vue-router";
 import { useTheme } from "vuetify";
-import type { UserState } from "@/composables/useAuth";
-
-defineProps<{
-    user: UserState;
-}>();
+import { useAuth } from "@/composables/useAuth";
 
 defineEmits<{
     (e: "logout"): void;
@@ -107,6 +103,7 @@ defineEmits<{
 
 const route = useRoute();
 const theme = useTheme();
+const { user, logout } = useAuth();
 
 const isNotHome = computed(() => route.path.replace(/^\/|\/$/g, "") !== "");
 const isNotDashboard = computed(() => {
@@ -122,13 +119,14 @@ const toggleTheme = (targetValue: boolean) => {
 </script>
 
 <style scoped>
-:deep(.v-navigation-drawer) {
+.v-navigation-drawer {
     border: none !important;
     background-color: rgba(var(--v-theme-surface), 0.8) !important;
     backdrop-filter: blur(15px);
     box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1) !important;
-    margin: 8px 0;
-    height: calc(100% - 16px) !important;
-    border-radius: 16px 0 0 16px !important;
+    margin: 12px 0;
+    height: calc(100% - 24px) !important;
+    border-radius: 24px 0 0 24px !important;
+    overflow: hidden !important;
 }
 </style>

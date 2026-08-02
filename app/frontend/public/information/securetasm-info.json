@@ -1,0 +1,23 @@
+[
+    {
+        "id": 202606090455,
+        "title": "Add New Utility",
+        "information": "Add teacher attendance. You can see the details of the attendance",
+        "information_detail": "Add meeting list. You can see the details of the teacher attendance",
+        "info_date": "2026-06-09-04:55"
+    },
+    {
+        "id": 202605250000,
+        "title": "Site Completion Notice",
+        "information": "The site will be operational from tomorrow. Some functions will be available",
+        "information_detail": "The site will be operational from tomorrow. Some functions will be available",
+        "info_date": "2026-05-25-00:00"
+    },
+    {
+        "id": 202605250001,
+        "title": "Notice of Postponement",
+        "information": "Although the site was scheduled to be operational from today, it has been postponed because completion was not completed in time",
+        "information_detail": "Although the site was scheduled to be operational from today, it has been postponed because completion was not completed in time. The site will be operational from tomorrow.",
+        "info_date": "2026-05-25-00:01"
+    }
+]

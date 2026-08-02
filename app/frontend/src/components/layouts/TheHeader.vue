@@ -12,7 +12,7 @@
                 <v-img
                     :src="logo"
                     height="40"
-                    width="140"
+                    width="80"
                     alt="logo"
                     class="mr-2"
                 />
@@ -89,7 +89,7 @@
                                         color="error"
                                         prepend-icon="mdi-logout"
                                         block
-                                        @click="$emit('logout')"
+                                        @click="logout"
                                     >
                                         Logout
                                     </v-btn>
@@ -116,20 +116,16 @@ import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import { useTheme } from "vuetify";
 import logo from "@/assets/logo.svg";
-import type { UserState } from "@/composables/useAuth";
-
-defineProps<{
-    user: UserState;
-}>();
+import { useAuth } from "@/composables/useAuth";
 
 defineEmits<{
     (e: "toggle-drawer"): void;
-    (e: "logout"): void;
 }>();
 
 const route = useRoute();
 const theme = useTheme();
 const isScrolled = ref(false);
+const { user, logout } = useAuth();
 
 const isNotHome = computed(() => route.path.replace(/^\/|\/$/g, "") !== "");
 const isNotDashboard = computed(() => {

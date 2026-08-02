@@ -67,7 +67,13 @@
 
                     <div class="login-footer text-white text-body-2 mt-auto">
                         {{ new Date().getFullYear() }} —
-                        <strong>102℃</strong>
+                        <v-btn
+                            href="https://lozdo.com"
+                            target="_blank"
+                            variant="text"
+                        >
+                            <strong>102℃</strong>
+                        </v-btn>
                     </div>
                 </div>
             </v-col>

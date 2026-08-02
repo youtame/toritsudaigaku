@@ -10,8 +10,9 @@ export interface UserState {
     avatarUrl?: string;
 }
 
+const user = ref<UserState>({ authenticated: false });
+
 export function useAuth() {
-    const user = ref<UserState>({ authenticated: false });
     const router = useRouter();
     const route = useRoute();
 
