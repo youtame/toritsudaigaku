@@ -13,7 +13,7 @@ export const fileController = {
      */
     async getMyFiles(req: Request, res: Response) {
         try {
-            const userId = req.user?.id; // Assuming auth middleware attaches user info
+            const userId = (req.session as any)?.userId; // Assuming auth middleware attaches user info
             if (!userId) {
                 return res.status(401).json({ error: "Unauthorized" });
             }
@@ -282,11 +282,9 @@ export const fileController = {
 
             // Cannot revoke permission from oneself (owner)
             if (targetUserId === currentUserId) {
-                return res
-                    .status(400)
-                    .json({
-                        error: "Cannot revoke permission from the file owner",
-                    });
+                return res.status(400).json({
+                    error: "Cannot revoke permission from the file owner",
+                });
             }
 
             // Delete permission record for target user
