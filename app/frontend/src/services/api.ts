@@ -38,7 +38,7 @@ export const fileApi = {
         return data.files;
     },
 
-    async resuestUploadUrl(metadata: {
+    async requestUploadUrl(metadata: {
         originalName: string;
         fileSize: number;
         mimeType: string;
@@ -59,11 +59,11 @@ export const fileApi = {
         return await response.json();
     },
 
-    async UploadFiles(uploadUrl: string, file: File): Promise<void> {
+    async uploadFileToS3(uploadUrl: string, file: File): Promise<void> {
         const response = await fetch(uploadUrl, {
             method: "PUT",
             headers: {
-                "Content-Type": "application/json",
+                "Content-Type": file.type || "application/octet-stream",
             },
             body: file,
         });
@@ -74,7 +74,7 @@ export const fileApi = {
     },
 
     async GetDownloadsUrl(fileId: string): Promise<string> {
-        const response = await fetch(`${backendUrl}/download-url`, {
+        const response = await fetch(`${backendUrl}/${fileId}/download-url`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -104,14 +104,14 @@ export const fileApi = {
         }
     },
 
-    async shareFile(fileId: string, targetUserId: string): Promise<void> {
+    async shareFile(fileId: string, email: string): Promise<void> {
         const response = await fetch(`${backendUrl}/${fileId}/permissions`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
             credentials: "include",
-            body: JSON.stringify({ targetUserId }),
+            body: JSON.stringify({ targetEmail: email }),
         });
 
         if (!response.ok) {

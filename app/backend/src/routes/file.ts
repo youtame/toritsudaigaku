@@ -5,6 +5,7 @@ import { isAuthenticated } from "../middlewares/auth"; // Adjust import path if 
 const router = Router();
 
 // Caution! dev
+/*
 const devAuthMiddleware = (req: any, res: any, next: any) => {
     req.session = req.session || {};
     req.session.userId = "c42e94cd-a93e-44a3-a48e-d09bed04ae7d";
@@ -15,6 +16,8 @@ const devAuthMiddleware = (req: any, res: any, next: any) => {
 router.use(
     process.env.NODE_ENV === "production" ? isAuthenticated : devAuthMiddleware,
 );
+*/
+router.use(isAuthenticated);
 
 router.get("/", fileController.getMyFiles);
 

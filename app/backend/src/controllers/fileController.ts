@@ -11,9 +11,11 @@ export const fileController = {
      * Get all files accessible by the authenticated user.
      * JOINS 'files' and 'file_permissions' to ensure security.
      */
+    // src/controllers/fileController.ts
+
     async getMyFiles(req: Request, res: Response) {
         try {
-            const userId = (req.session as any)?.userId; // Assuming auth middleware attaches user info
+            const userId = (req.session as any)?.userId;
             if (!userId) {
                 return res.status(401).json({ error: "Unauthorized" });
             }
@@ -22,6 +24,7 @@ export const fileController = {
             const userFiles = await db
                 .select({
                     id: files.id,
+                    userId: files.userId,
                     s3Key: files.s3Key,
                     originalName: files.originalName,
                     fileSize: files.fileSize,
@@ -50,6 +53,7 @@ export const fileController = {
                         mimeType: file.mimeType,
                         createdAt: file.createdAt,
                         downloadUrl: downloadUrl,
+                        isOwner: file.userId === userId,
                     };
                 }),
             );
@@ -67,23 +71,49 @@ export const fileController = {
      */
     async requestUploadUrl(req: Request, res: Response) {
         try {
-            const userId = req.session.userId;
+            const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
+            const ALLOWED_MIME_TYPES = [
+                "text/plain",
+                "text/markdown",
+                "text/x-markdown",
+                "application/pdf",
+                "application/json",
+                "image/jpeg",
+                "image/png",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            ];
+
+            const userId = req.session.userId;
             if (!userId) {
                 return res.status(401).json({ error: "Unauthorized" });
             }
 
             const { originalName, fileSize, mimeType } = req.body;
+
             if (!originalName || !fileSize || !mimeType) {
                 return res
                     .status(400)
                     .json({ error: "Missing required file metadata" });
             }
 
+            if (Number(fileSize) > MAX_FILE_SIZE) {
+                return res.status(400).json({
+                    error: "File size exceeds the maximum limit (50MB)",
+                });
+            }
+
+            if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
+                return res
+                    .status(400)
+                    .json({ error: "Invalid or unsupported file type" });
+            }
+
             // Generate a unique S3 key to avoid file name collisions
             const s3Key = `uploads/${uuidv4()}-${originalName}`;
 
-            // 1. Insert file metadata into database
+            // 3. Insert file metadata into database
             const [newFile] = await db
                 .insert(files)
                 .values({
@@ -95,13 +125,13 @@ export const fileController = {
                 })
                 .returning();
 
-            // 2. Grant access permission to the uploader (owner)
+            // 4. Grant access permission to the uploader (owner)
             await db.insert(filePermissions).values({
                 fileId: newFile.id,
                 userId: userId,
             });
 
-            // 3. Generate presigned upload URL
+            // 5. Generate presigned upload URL
             const uploadUrl = await s3Service.getUploadUrl(s3Key, mimeType);
 
             return res.status(201).json({
@@ -122,15 +152,14 @@ export const fileController = {
      */
     async shareFilePermission(req: Request, res: Response) {
         try {
-            const currentUserId = req.user?.id;
+            const currentUserId = req.session?.userId;
             const { fileId } = req.params;
-            const { targetUserId } = req.body;
+            const { targetEmail } = req.body;
 
             if (!currentUserId) {
                 return res.status(401).json({ error: "Unauthorized" });
             }
 
-            // Verify that the requester is the owner of the file
             const [file] = await db
                 .select()
                 .from(files)
@@ -144,10 +173,18 @@ export const fileController = {
                     .json({ error: "Forbidden: You do not own this file" });
             }
 
-            // Grant permission to the target user
+            const [targetUser] = await db
+                .select()
+                .from(users)
+                .where(eq(users.email, targetEmail));
+
+            if (!targetUser) {
+                return res.status(404).json({ error: "Target user not found" });
+            }
+
             await db.insert(filePermissions).values({
                 fileId: fileId,
-                userId: targetUserId,
+                userId: targetUser.id,
             });
 
             return res
