@@ -29,6 +29,8 @@ export const fileController = {
                     originalName: files.originalName,
                     fileSize: files.fileSize,
                     mimeType: files.mimeType,
+                    isEncrypted: files.isEncrypted,
+                    encryptionMetadata: files.encryptionMetadata,
                     createdAt: files.createdAt,
                 })
                 .from(files)
@@ -51,6 +53,8 @@ export const fileController = {
                         originalName: file.originalName,
                         fileSize: file.fileSize,
                         mimeType: file.mimeType,
+                        isEncrypted: file.isEncrypted,
+                        encryptionMetadata: file.encryptionMetadata,
                         createdAt: file.createdAt,
                         downloadUrl: downloadUrl,
                         isOwner: file.userId === userId,
@@ -90,7 +94,13 @@ export const fileController = {
                 return res.status(401).json({ error: "Unauthorized" });
             }
 
-            const { originalName, fileSize, mimeType } = req.body;
+            const {
+                originalName,
+                fileSize,
+                mimeType,
+                isEncrypted,
+                encryptionMetadata,
+            } = req.body;
 
             if (!originalName || !fileSize || !mimeType) {
                 return res
@@ -104,7 +114,11 @@ export const fileController = {
                 });
             }
 
-            if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
+            const effectiveMimeType = isEncrypted
+                ? "application/json"
+                : mimeType;
+
+            if (!ALLOWED_MIME_TYPES.includes(mimeType) && !isEncrypted) {
                 return res
                     .status(400)
                     .json({ error: "Invalid or unsupported file type" });
@@ -122,6 +136,8 @@ export const fileController = {
                     originalName: originalName,
                     fileSize: Number(fileSize),
                     mimeType: mimeType,
+                    isEncrypted: Boolean(isEncrypted),
+                    encryptionMetadata: encryptionMetadata || null,
                 })
                 .returning();
 
@@ -132,7 +148,10 @@ export const fileController = {
             });
 
             // 5. Generate presigned upload URL
-            const uploadUrl = await s3Service.getUploadUrl(s3Key, mimeType);
+            const uploadUrl = await s3Service.getUploadUrl(
+                s3Key,
+                effectiveMimeType,
+            );
 
             return res.status(201).json({
                 fileId: newFile.id,
@@ -252,11 +271,12 @@ export const fileController = {
                 return res.status(401).json({ error: "Unauthorized" });
             }
 
-            // Check if user has permission to access this file
             const [permission] = await db
                 .select({
                     s3Key: files.s3Key,
                     originalName: files.originalName,
+                    isEncrypted: files.isEncrypted,
+                    encryptionMetadata: files.encryptionMetadata,
                 })
                 .from(files)
                 .innerJoin(
@@ -276,13 +296,16 @@ export const fileController = {
                     .json({ error: "Access denied or file not found" });
             }
 
-            // Generate presigned download URL
             const downloadUrl = await s3Service.getDownloadUrl(
                 permission.s3Key,
                 permission.originalName,
             );
 
-            return res.status(200).json({ downloadUrl });
+            return res.status(200).json({
+                downloadUrl,
+                isEncrypted: permission.isEncrypted,
+                encryptionMetadata: permission.encryptionMetadata,
+            });
         } catch (error) {
             console.error("Error getting download URL:", error);
             return res

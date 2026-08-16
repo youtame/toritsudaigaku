@@ -6,6 +6,10 @@ import { getFileIcon } from "@/utils/getFileIcon";
 
 import FileDetailsDialog from "./FileDetailsDialog.vue";
 import ShareDialog from "./ShareDialog.vue";
+import DeleteDialog from "./DeleteDialog.vue";
+import DecryptDialog from "./DecryptDialog.vue";
+
+import { decryptData } from "@/utils/encryption";
 
 const files = ref<FileItem[]>([]);
 const isLoading = ref(true);
@@ -21,6 +25,11 @@ const isSharing = ref(false);
 
 const isDetailsDialogVisible = ref(false);
 const fileDetails = ref<FileItem | null>(null);
+
+const isPasswordDialogOpen = ref(false);
+const fileToDecrypt = ref<FileItem | null>(null);
+const decryptionPassword = ref("");
+const isDecrypting = ref(false);
 
 const snackbar = ref({
     show: false,
@@ -61,13 +70,75 @@ onMounted(() => {
     fetchFiles();
 });
 
-const handleDownload = async (fileId: string) => {
+const handleDownload = async (file: FileItem) => {
     try {
-        const downloadUrl = await fileApi.GetDownloadsUrl(fileId);
-        window.open(downloadUrl, "_blank");
+        const response = await fileApi.GetDownloadsUrl(String(file.id));
+
+        const { downloadUrl, isEncrypted, encryptionMetadata } =
+            response as any;
+
+        if (isEncrypted) {
+            fileToDecrypt.value = { ...file, downloadUrl, encryptionMetadata };
+            decryptionPassword.value = "";
+            isPasswordDialogOpen.value = true;
+        } else {
+            window.open(downloadUrl, "_blank");
+        }
     } catch (error) {
         console.error("Failed to get download URL", error);
         showSnackbar("Failed to get download URL.", "error");
+    }
+};
+
+const confirmDecryptAndDownload = async (password: string) => {
+    if (!fileToDecrypt.value) return;
+
+    isDecrypting.value = true;
+    try {
+        const { downloadUrl, encryptionMetadata, originalName, mimeType } =
+            fileToDecrypt.value as any;
+
+        const res = await fetch(downloadUrl);
+        const jsonPayload = await res.json();
+
+        const decryptedBase64 = await decryptData(
+            password,
+            jsonPayload.ciphertext,
+            encryptionMetadata.salt,
+            encryptionMetadata.iv,
+        );
+
+        const binaryString = atob(decryptedBase64);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+
+        const blob = new Blob([bytes], {
+            type: mimeType || "application/octet-stream",
+        });
+        const blobUrl = window.URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = originalName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(blobUrl);
+
+        isPasswordDialogOpen.value = false;
+        fileToDecrypt.value = null;
+        showSnackbar("File decrypted and downloaded successfully");
+    } catch (error) {
+        console.error("Failed to decrypt file:", error);
+        showSnackbar(
+            "Decryption failed. Incorrect password or corrupted data.",
+            "error",
+        );
+    } finally {
+        isDecrypting.value = false;
     }
 };
 
@@ -89,7 +160,7 @@ const confirmDelete = async () => {
 
         isDeleteDialogOpen.value = false;
         fileToDelete.value = null;
-        showSnackbar("File deleted successfully!");
+        showSnackbar("File deleted successfully");
     } catch (error) {
         console.error("Failed to delete file", error);
         showSnackbar("Failed to delete file.", "error");
@@ -147,9 +218,19 @@ defineExpose({
             >
                 <template v-slot:prepend>
                     <v-icon
-                        :icon="getFileIcon(file.mimeType)"
+                        :icon="
+                            file.isEncrypted
+                                ? 'mdi-lock'
+                                : getFileIcon(file.mimeType)
+                        "
                         size="large"
-                        :color="file.isOwner ? 'primary' : undefined"
+                        :color="
+                            file.isEncrypted
+                                ? 'lock'
+                                : file.isOwner
+                                  ? 'primary'
+                                  : undefined
+                        "
                         class="me-2"
                     ></v-icon>
                 </template>
@@ -179,10 +260,11 @@ defineExpose({
                             ></v-btn>
                         </template>
 
+                        <!-- Share -->
                         <v-list density="compact" width="200">
                             <v-list-item
                                 @click="openShareDialog(file)"
-                                v-if="file.isOwner"
+                                v-if="file.isOwner && !file.isEncrypted"
                             >
                                 <template v-slot:prepend>
                                     <v-icon size="small" color="primary"
@@ -195,9 +277,7 @@ defineExpose({
                             </v-list-item>
 
                             <!-- Download -->
-                            <v-list-item
-                                @click="handleDownload(String(file.id))"
-                            >
+                            <v-list-item @click="handleDownload(file)">
                                 <template v-slot:prepend>
                                     <v-icon size="small">mdi-download</v-icon>
                                 </template>
@@ -244,36 +324,12 @@ defineExpose({
         />
 
         <!-- Delete Dialog -->
-        <v-dialog v-model="isDeleteDialogOpen" max-width="400px">
-            <v-card class="pa-3 rounded-lg">
-                <v-card-title class="text-h6 font-weight-bold px-3 pt-2">
-                    Delete file?
-                </v-card-title>
-                <v-card-text class="px-3 py-2">
-                    Are you sure you want to permanently delete "<span
-                        class="font-weight-bold"
-                        >{{ fileToDelete?.originalName }}</span
-                    >"? This action cannot be undone.
-                </v-card-text>
-                <v-card-actions class="justify-end px-3 pb-2">
-                    <v-btn
-                        color="error"
-                        variant="flat"
-                        @click="confirmDelete"
-                        :loading="isDeleting"
-                    >
-                        Delete
-                    </v-btn>
-                    <v-btn
-                        variant="text"
-                        @click="isDeleteDialogOpen = false"
-                        :disabled="isDeleting"
-                    >
-                        Cancel
-                    </v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
+        <DeleteDialog
+            v-model="isDeleteDialogOpen"
+            :file="fileToDelete"
+            :is-deleting="isDeleting"
+            @delete="confirmDelete"
+        />
 
         <!-- Share Dialog -->
         <ShareDialog
@@ -281,6 +337,14 @@ defineExpose({
             :file="fileToShare"
             :is-sharing="isSharing"
             @share="handleShare"
+        />
+
+        <!-- Decrypt Dialog -->
+        <DecryptDialog
+            v-model="isPasswordDialogOpen"
+            :file="fileToDecrypt"
+            :is-decrypting="isDecrypting"
+            @decrypt="confirmDecryptAndDownload"
         />
 
         <!-- Snackbar -->

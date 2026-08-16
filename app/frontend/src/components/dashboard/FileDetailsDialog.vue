@@ -4,7 +4,7 @@ import type { FileItem } from "@/services/api";
 
 defineProps<{
     modelValue: boolean;
-    file: FileItem | null;
+    file: (FileItem & { isEncrypted?: boolean }) | null;
 }>();
 
 const emit = defineEmits<{
@@ -53,6 +53,30 @@ const formatFileSize = (bytes: number) => {
                             >MIME Type:</span
                         >
                         <p class="mt-1">{{ file.mimeType }}</p>
+                    </div>
+                    <!-- ▼ 追加：暗号化ステータスの表示 -->
+                    <div class="mb-2">
+                        <span class="text-grey-darken-1 font-weight-bold"
+                            >Security:</span
+                        >
+                        <p class="mt-1">
+                            <v-chip
+                                size="x-small"
+                                :color="file.isEncrypted ? 'lock' : 'grey'"
+                                :prepend-icon="
+                                    file.isEncrypted
+                                        ? 'mdi-lock'
+                                        : 'mdi-lock-open-outline'
+                                "
+                                variant="outlined"
+                            >
+                                {{
+                                    file.isEncrypted
+                                        ? "End-to-End Encrypted (E2EE)"
+                                        : "Standard"
+                                }}
+                            </v-chip>
+                        </p>
                     </div>
                     <div class="mb-2">
                         <span class="text-grey-darken-1 font-weight-bold"

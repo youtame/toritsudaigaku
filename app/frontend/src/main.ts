@@ -19,11 +19,13 @@ const vuetify = createVuetify({
             light: {
                 colors: {
                     primary: "#00bc74",
+                    lock: "#311B92",
                 },
             },
             dark: {
                 colors: {
                     primary: "#00c87b",
+                    lock: "#B388FF",
                 },
             },
         },

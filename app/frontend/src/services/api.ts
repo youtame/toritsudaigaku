@@ -11,6 +11,8 @@ export interface FileItem {
     fileSize: number;
     mimeType: string;
     createdAt: string;
+    isOwner?: boolean;
+    isEncrypted?: boolean;
     downloadUrl?: string;
 }
 
@@ -42,6 +44,8 @@ export const fileApi = {
         originalName: string;
         fileSize: number;
         mimeType: string;
+        isEncrypted?: boolean;
+        encryptionMetadata?: { salt: string; iv: string } | null;
     }): Promise<UploadUrlResponse> {
         const response = await fetch(`${backendUrl}/upload-url`, {
             method: "POST",
@@ -73,7 +77,11 @@ export const fileApi = {
         }
     },
 
-    async GetDownloadsUrl(fileId: string): Promise<string> {
+    async GetDownloadsUrl(fileId: string): Promise<{
+        downloadUrl: string;
+        isEncrypted: boolean;
+        encryptionMetadata: { salt: string; iv: string } | null;
+    }> {
         const response = await fetch(`${backendUrl}/${fileId}/download-url`, {
             method: "GET",
             headers: {
@@ -86,8 +94,7 @@ export const fileApi = {
             throw new Error("Error: Failed to get downloads URL.");
         }
 
-        const data = await response.json();
-        return data.downloadUrl;
+        return await response.json();
     },
 
     async deleteFile(fileId: string): Promise<void> {
