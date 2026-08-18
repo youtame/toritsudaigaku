@@ -155,7 +155,8 @@ const isFormInvalid = computed(() => {
                     <v-expand-transition>
                         <div v-if="isEncrypted" class="mt-3 pa-3 rounded-lg">
                             <p
-                                class="text-caption text-deep-purple-darken-2 font-weight-medium mb-2"
+                                class="text-caption font-weight-medium mb-2"
+                                color="primary"
                             >
                                 E2EE: Encrypt files using End-to-End Encryption.
                             </p>
