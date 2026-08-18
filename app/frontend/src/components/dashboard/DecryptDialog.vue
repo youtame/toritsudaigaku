@@ -44,8 +44,11 @@ const handleDecrypt = () => {
             </v-card-title>
             <v-card-text class="px-3 py-2">
                 <p class="text-caption text-grey-darken-1 mb-3">
-                    This file is end-to-end encrypted. Please enter the password
-                    to decrypt:
+                    "<span class="font-weight-bold">{{
+                        file?.originalName
+                    }}</span
+                    >" is end-to-end encrypted. Please enter the password to
+                    decrypt:
                 </p>
                 <v-text-field
                     v-model="password"
@@ -65,7 +68,7 @@ const handleDecrypt = () => {
                     :loading="isDecrypting"
                     @click="handleDecrypt"
                 >
-                    Decrypt & Download
+                    Decrypt
                 </v-btn>
                 <v-btn
                     variant="text"

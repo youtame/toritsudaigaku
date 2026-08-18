@@ -47,7 +47,7 @@ onMounted(() => {
 
         <div class="mb-8">
             <h2 class="sub-title d-flex align-center">
-                <span>Recents</span>
+                <span>Recently Uploaded</span>
             </h2>
             <v-divider :thickness="2" class="mt-2"></v-divider>
 

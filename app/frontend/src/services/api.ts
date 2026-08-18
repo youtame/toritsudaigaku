@@ -6,7 +6,7 @@ const baseUrl =
 const backendUrl = `${baseUrl}/api/files`;
 
 export interface FileItem {
-    id: String;
+    id: string;
     originalName: string;
     fileSize: number;
     mimeType: string;

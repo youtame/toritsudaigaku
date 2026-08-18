@@ -22,7 +22,7 @@ function base64ToBuffer(base64: string): ArrayBuffer {
 
 export async function encryptData(
     password: string,
-    plainText: string,
+    data: ArrayBuffer | Uint8Array,
 ): Promise<{ ciphertext: string; salt: string; iv: string }> {
     const enc = new TextEncoder();
 
@@ -50,12 +50,12 @@ export async function encryptData(
         ["encrypt"],
     );
 
-    const encodedText = enc.encode(plainText);
+    const bufferData = data instanceof Uint8Array ? data.buffer : data;
 
     const encryptedBuffer = await window.crypto.subtle.encrypt(
         { name: "AES-GCM", iv: iv },
         aesKey,
-        encodedText,
+        bufferData,
     );
 
     return {
@@ -70,9 +70,8 @@ export async function decryptData(
     ciphertextB64: string,
     saltB64: string,
     ivB64: string,
-): Promise<string> {
+): Promise<ArrayBuffer> {
     const enc = new TextEncoder();
-    const dec = new TextDecoder();
 
     const salt = new Uint8Array(base64ToBuffer(saltB64));
     const iv = new Uint8Array(base64ToBuffer(ivB64));
@@ -99,11 +98,12 @@ export async function decryptData(
         ["decrypt"],
     );
 
-    const decryptedBuffer = await window.crypto.subtle.decrypt(
+    const decryptedBuffer = await window.crypto.subtle.encrypt;
+    const decryptedBufferActual = await window.crypto.subtle.decrypt(
         { name: "AES-GCM", iv: iv },
         aesKey,
         ciphertext,
     );
 
-    return dec.decode(decryptedBuffer);
+    return decryptedBufferActual;
 }

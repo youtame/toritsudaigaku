@@ -15,7 +15,6 @@ const isUploading = ref(false);
 
 const isEncrypted = ref(false);
 const password = ref("");
-const showPassword = ref(false);
 
 const snackbar = ref({
     show: false,
@@ -55,23 +54,21 @@ const handleUpload = async () => {
         let fileToUpload: File | Blob = file;
         let encryptionMetadata = null;
 
+        const originalMimeType = file.type || "application/octet-stream";
+
         if (isEncrypted.value) {
             const arrayBuffer = await file.arrayBuffer();
-            const base64Content = btoa(
-                String.fromCharCode(...new Uint8Array(arrayBuffer)),
-            );
 
-            const encrypted = await encryptData(password.value, base64Content);
+            const encrypted = await encryptData(password.value, arrayBuffer);
 
             const jsonPayload = JSON.stringify({
                 ciphertext: encrypted.ciphertext,
-                salt: encrypted.salt,
-                iv: encrypted.iv,
             });
 
             fileToUpload = new Blob([jsonPayload], {
                 type: "application/json",
             });
+
             encryptionMetadata = {
                 salt: encrypted.salt,
                 iv: encrypted.iv,
@@ -81,9 +78,7 @@ const handleUpload = async () => {
         const { uploadUrl } = await fileApi.requestUploadUrl({
             originalName: file.name,
             fileSize: fileToUpload.size,
-            mimeType: isEncrypted.value
-                ? "application/json"
-                : file.type || "application/octet-stream",
+            mimeType: originalMimeType,
             isEncrypted: isEncrypted.value,
             encryptionMetadata: encryptionMetadata,
         });
@@ -94,7 +89,7 @@ const handleUpload = async () => {
         selectedFile.value = null;
         isEncrypted.value = false;
         password.value = "";
-        showSnackbar("File uploaded successfull");
+        showSnackbar("File uploaded successfully");
 
         emit("uploaded");
     } catch (error) {
@@ -105,24 +100,9 @@ const handleUpload = async () => {
     }
 };
 
-const isTextFile = computed(() => {
-    if (!selectedFile.value) return true;
-    const type = selectedFile.value.type;
-    return (
-        type.startsWith("text/") ||
-        type === "application/json" ||
-        type === "application/x-yaml" ||
-        selectedFile.value.name.endsWith(".md") ||
-        selectedFile.value.name.endsWith(".txt")
-    );
-});
-
 const isFormInvalid = computed(() => {
     if (!selectedFile.value) return true;
-    if (isEncrypted.value) {
-        if (!password.value) return true;
-        if (!isTextFile.value) return true;
-    }
+    if (isEncrypted.value && !password.value) return true;
     return false;
 });
 </script>
@@ -173,14 +153,11 @@ const isFormInvalid = computed(() => {
                     </div>
 
                     <v-expand-transition>
-                        <div
-                            v-if="isEncrypted"
-                            class="mt-3 pa-3 rounded-lg bg-grey-lighten-4"
-                        >
+                        <div v-if="isEncrypted" class="mt-3 pa-3 rounded-lg">
                             <p
                                 class="text-caption text-deep-purple-darken-2 font-weight-medium mb-2"
                             >
-                                E2EE (Text files only: .md, .txt, .json)
+                                E2EE: Encrypt files using End-to-End Encryption.
                             </p>
 
                             <v-text-field
@@ -193,14 +170,6 @@ const isFormInvalid = computed(() => {
                                 persistent-hint
                                 hide-details="auto"
                             ></v-text-field>
-
-                            <p
-                                v-if="selectedFile && !isTextFile"
-                                class="text-caption text-error mt-2 font-weight-bold"
-                            >
-                                Warning: Only text-based files can be encrypted.
-                                Please select a text file.
-                            </p>
                         </div>
                     </v-expand-transition>
                 </v-card-text>
