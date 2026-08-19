@@ -29,6 +29,8 @@ CREATE TABLE files (
     original_name TEXT NOT NULL,
     file_size BIGINT NOT NULL,
     mime_type TEXT NOT NULL,
+    is_encrypted BOOLEAN NOT NULL DEFAULT FALSE,
+    encryption_metadata JSONB,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
