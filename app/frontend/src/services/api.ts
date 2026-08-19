@@ -145,4 +145,19 @@ export const fileApi = {
             throw new Error("Error: Failed to delete permissions.");
         }
     },
+
+    async createFolder(folderName: string, currentPath: string): Promise<void> {
+        const response = await fetch(`${backendUrl}/folders`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({ folderName, currentPath }),
+        });
+
+        if (!response.ok) {
+            throw new Error("Error: Failed to create folder.");
+        }
+    },
 };

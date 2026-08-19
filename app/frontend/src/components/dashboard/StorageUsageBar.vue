@@ -50,6 +50,8 @@ const usageStats = computed(() => {
     let totalSize = 0;
 
     props.files.forEach((file) => {
+        if (file.originalName.endsWith("/.placeholder")) return;
+
         const info = getFileCategoryInfo(file);
         if (!categoryMap[info.label]) {
             categoryMap[info.label] = {

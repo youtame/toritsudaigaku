@@ -24,6 +24,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import("@/pages/Dashboard.vue"),
         meta: { title: "Dashboard", requiresAuth: true },
     },
+    {
+        path: "/dashboard/folder/:pathMatch(.*)*",
+        name: "folder-detail",
+        component: () => import("@/pages/FolderDetail.vue"),
+        meta: { title: "Folder", requiresAuth: true },
+    },
 ];
 
 export const router = createRouter({

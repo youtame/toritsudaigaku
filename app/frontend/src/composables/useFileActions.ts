@@ -34,7 +34,7 @@ export function useFileActions(
                 };
                 isPasswordDialogOpen.value = true;
             } else {
-                handleUnencryptedAccess(file, downloadUrl, action);
+                await handleUnencryptedAccess(file, downloadUrl, action);
             }
         } catch (error) {
             console.error("Failed to get file URL", error);
@@ -42,13 +42,30 @@ export function useFileActions(
         }
     };
 
-    const handleUnencryptedAccess = (
+    const handleUnencryptedAccess = async (
         file: FileItem,
         downloadUrl: string,
         action: "download" | "preview",
     ) => {
         if (action === "preview") {
-            previewUrl.value = downloadUrl;
+            const mimeType = file.mimeType || "";
+            const isTextFile =
+                mimeType.startsWith("text/") ||
+                mimeType === "application/json" ||
+                mimeType === "application/javascript" ||
+                file.originalName.endsWith(".md") ||
+                file.originalName.endsWith(".txt") ||
+                file.originalName.endsWith(".json");
+
+            if (isTextFile) {
+                const res = await fetch(downloadUrl);
+                previewTextContent.value = await res.text();
+                previewUrl.value = null;
+            } else {
+                previewUrl.value = downloadUrl;
+                previewTextContent.value = null;
+            }
+
             fileToPreview.value = file;
             isPreviewDialogOpen.value = true;
         } else {
@@ -108,6 +125,7 @@ export function useFileActions(
                     previewUrl.value = null;
                 } else {
                     previewUrl.value = blobUrl;
+                    previewTextContent.value = null;
                 }
                 fileToPreview.value = fileToDecrypt.value;
                 isPasswordDialogOpen.value = false;

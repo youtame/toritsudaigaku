@@ -23,6 +23,8 @@ router.get("/", fileController.getMyFiles);
 
 router.post("/upload-url", fileController.requestUploadUrl);
 
+router.post("/folders", fileController.createFolder);
+
 router.post("/:fileId/permissions", fileController.shareFilePermission);
 
 router.delete("/:fileId", fileController.deleteFile);

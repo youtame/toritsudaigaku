@@ -9,6 +9,10 @@ const emit = defineEmits<{
     (e: "uploaded"): void;
 }>();
 
+const props = defineProps<{
+    currentPath?: string;
+}>();
+
 const isDialogOpen = ref(false);
 const selectedFile = ref<File | null>(null);
 const isUploading = ref(false);
@@ -58,9 +62,7 @@ const handleUpload = async () => {
 
         if (isEncrypted.value) {
             const arrayBuffer = await file.arrayBuffer();
-
             const encrypted = await encryptData(password.value, arrayBuffer);
-
             const jsonPayload = JSON.stringify({
                 ciphertext: encrypted.ciphertext,
             });
@@ -75,8 +77,11 @@ const handleUpload = async () => {
             };
         }
 
+        const basePath = props.currentPath ? `${props.currentPath}/` : "";
+        const fullOriginalName = `${basePath}${file.name}`;
+
         const { uploadUrl } = await fileApi.requestUploadUrl({
-            originalName: file.name,
+            originalName: fullOriginalName,
             fileSize: fileToUpload.size,
             mimeType: originalMimeType,
             isEncrypted: isEncrypted.value,

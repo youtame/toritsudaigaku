@@ -1,16 +1,15 @@
 <!-- src/components/dashboard/RecentFiles.vue -->
-<!-- src/components/dashboard/RecentFiles.vue -->
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { fileApi, type FileItem } from "@/services/api";
 import { getFileIcon } from "@/utils/getFileIcon";
 import { useFileActions } from "@/composables/useFileActions";
 
-import FileDetailsDialog from "./FileDetailsDialog.vue";
-import ShareDialog from "./ShareDialog.vue";
-import DeleteDialog from "./DeleteDialog.vue";
-import DecryptDialog from "./DecryptDialog.vue";
-import PreviewDialog from "./PreviewDialog.vue";
+import FileDetailsDialog from "./dialog/FileDetailsDialog.vue";
+import ShareDialog from "./dialog/ShareDialog.vue";
+import DeleteDialog from "./dialog/DeleteDialog.vue";
+import DecryptDialog from "./dialog/DecryptDialog.vue";
+import PreviewDialog from "./dialog/PreviewDialog.vue";
 
 const files = ref<FileItem[]>([]);
 const isLoading = ref(true);
@@ -50,7 +49,6 @@ const handlePreview = async (file: FileItem) => {
     await prepareFileAccess(file, "preview");
 };
 
-// dialog state & handlers
 const isDeleteDialogOpen = ref(false);
 const fileToDelete = ref<FileItem | null>(null);
 const isDeleting = ref(false);
@@ -72,6 +70,8 @@ const confirmDelete = async () => {
         isDeleteDialogOpen.value = false;
         fileToDelete.value = null;
         showSnackbar("File deleted successfully");
+
+        emit("file-deleted");
     } catch (error) {
         console.error("Failed to delete file", error);
         showSnackbar("Failed to delete file.", "error");
@@ -121,18 +121,22 @@ const fetchFiles = async () => {
     try {
         const allFiles = await fileApi.getMyFiles();
         files.value = allFiles
+            .filter((file) => !file.originalName.endsWith("/.placeholder"))
             .sort(
                 (a, b) =>
                     new Date(b.createdAt).getTime() -
                     new Date(a.createdAt).getTime(),
             )
-            .slice(0, 5);
+            .slice(0, 3);
     } catch (error) {
         showSnackbar("Failed to fetch recent files", "error");
     } finally {
         isLoading.value = false;
     }
 };
+const emit = defineEmits<{
+    (e: "file-deleted"): void;
+}>();
 
 onMounted(fetchFiles);
 
