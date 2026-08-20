@@ -1,0 +1,60 @@
+services:
+    # ── FRONTEND & REVERSE PROXY (NGINX) ──
+    nginx:
+        build:
+            context: ./app/frontend
+            dockerfile: Dockerfile.prod
+        container_name: toritsudaigaku-nginx
+        restart: unless-stopped
+        expose:
+            - "80"
+        depends_on:
+            - app
+        networks:
+            - toritsudaigaku-network
+            - shared-net
+
+    # ── BACKEND (NODE.JS / EXPRESS) ──
+    app:
+        build:
+            context: ./app/backend
+            dockerfile: Dockerfile
+        container_name: toritsudaigaku-backend
+        restart: unless-stopped
+        expose:
+            - "3000"
+        depends_on:
+            - db
+        environment:
+            - DB_HOST=db
+            - DB_PORT=5432
+            - DB_USER=${DB_USER:-genius}
+            - DB_PASSWORD=${DB_PASSWORD:-tensai102do}
+            - DB_NAME=${DB_NAME:-toritsudaigaku_secure_db}
+            - DATABASE_URL=postgresql://${DB_USER:-genius}:${DB_PASSWORD:-tensai102do}@db:5432/${DB_NAME:-toritsudaigaku_secure_db}
+            - NODE_ENV=production
+        env_file:
+            - .env
+        networks:
+            - toritsudaigaku-network
+
+    # ── DATABASE (POSTGRESQL) ──
+    db:
+        image: postgres:16-alpine
+        container_name: toritsudaigaku-db
+        restart: unless-stopped
+        environment:
+            - POSTGRES_USER=${DB_USER:-genius}
+            - POSTGRES_PASSWORD=${DB_PASSWORD:-tensai102do}
+            - POSTGRES_DB=${DB_NAME:-toritsudaigaku_secure_db}
+        volumes:
+            - ./db_data:/var/lib/postgresql/data
+            - ./initdb.d:/docker-entrypoint-initdb.d
+        networks:
+            - toritsudaigaku-network
+
+networks:
+    toritsudaigaku-network:
+        driver: bridge
+    shared-net:
+        external: true

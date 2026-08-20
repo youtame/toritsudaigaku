@@ -10,7 +10,7 @@ const routes: RouteRecordRaw[] = [
         path: "/",
         name: "home",
         component: () => import("@/pages/Home.vue"),
-        meta: { title: "Secure Document Sharing" },
+        meta: { title: "Secure Cloud Services" },
     },
     {
         path: "/login",
