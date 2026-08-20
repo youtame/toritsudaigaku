@@ -88,7 +88,7 @@ const handleUpload = async () => {
             encryptionMetadata: encryptionMetadata,
         });
 
-        await fileApi.uploadFileToS3(uploadUrl, fileToUpload);
+        await fileApi.uploadFileToS3(uploadUrl, fileToUpload as File);
 
         isDialogOpen.value = false;
         selectedFile.value = null;

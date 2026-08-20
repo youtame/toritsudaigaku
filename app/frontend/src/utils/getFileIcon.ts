@@ -11,5 +11,5 @@ export function getFileIcon(mimeType: string): string {
         return MIME_ICON_MAP[prefix];
     }
 
-    return MIME_ICON_MAP["default"];
+    return MIME_ICON_MAP["default"] ?? "mdi-file";
 }

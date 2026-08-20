@@ -18,6 +18,7 @@ const emit = defineEmits<{
 
 const allFiles = ref<FileItem[]>([]);
 const isLoading = ref(true);
+const isSharing = ref(false);
 const currentPath = ref("");
 
 const snackbar = ref({
@@ -376,6 +377,7 @@ defineExpose({ fetchFiles });
         <ShareDialog
             v-model="isShareDialogVisible"
             :file="fileToShare"
+            :is-sharing="isSharing"
             @share="handleShare"
         />
         <DecryptDialog

@@ -49,7 +49,7 @@
                 <template v-slot:append>
                     <v-switch
                         :model-value="theme.global.current.value.dark"
-                        @update:model-value="toggleTheme"
+                        @update:model-value="(val) => toggleTheme(Boolean(val))"
                         color="primary"
                         hide-details
                         density="compact"

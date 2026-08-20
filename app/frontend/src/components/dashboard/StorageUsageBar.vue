@@ -60,7 +60,7 @@ const usageStats = computed(() => {
                 label: info.label,
             };
         }
-        categoryMap[info.label].size += file.fileSize;
+        categoryMap[info.label]!.size += file.fileSize;
         totalSize += file.fileSize;
     });
 

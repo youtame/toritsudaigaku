@@ -31,7 +31,7 @@ export function useFileActions(
                     ...file,
                     downloadUrl,
                     encryptionMetadata,
-                };
+                } as any;
                 isPasswordDialogOpen.value = true;
             } else {
                 await handleUnencryptedAccess(file, downloadUrl, action);

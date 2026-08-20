@@ -55,7 +55,7 @@ export async function encryptData(
     const encryptedBuffer = await window.crypto.subtle.encrypt(
         { name: "AES-GCM", iv: iv },
         aesKey,
-        bufferData,
+        bufferData as ArrayBuffer,
     );
 
     return {

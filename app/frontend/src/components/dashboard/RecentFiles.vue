@@ -275,7 +275,7 @@ defineExpose({ fetchFiles });
             :file="fileToPreview"
             :preview-url="previewUrl"
             :text-content="previewTextContent"
-            @close="handleClosePreview"
+            @close="closePreview"
         />
 
         <!-- Details Dialog -->

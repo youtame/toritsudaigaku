@@ -18,6 +18,7 @@ const router = useRouter();
 
 const allFiles = ref<FileItem[]>([]);
 const isLoading = ref(true);
+const isSharing = ref(false);
 
 const snackbar = ref({
     show: false,
@@ -446,6 +447,7 @@ watch(
         <ShareDialog
             v-model="isShareDialogVisible"
             :file="fileToShare"
+            :is-sharing="isSharing"
             @share="handleShare"
         />
         <DecryptDialog
