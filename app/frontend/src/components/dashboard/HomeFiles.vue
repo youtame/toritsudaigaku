@@ -171,7 +171,7 @@ defineExpose({ fetchFiles });
         <div v-else>
             <v-list
                 v-if="folders.length > 0 || rootFiles.length > 0"
-                class="rounded-lg pa-2"
+                class="rounded-lg pa-2 mb-10"
             >
                 <v-list-item
                     v-for="folder in folders"

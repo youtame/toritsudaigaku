@@ -37,7 +37,7 @@ const isNotLogin = computed(() => {
 </script>
 <style lang="css" scoped>
 .main-view {
-    width: 90%;
+    width: 95%;
     max-width: 1100px;
     margin: auto;
 }

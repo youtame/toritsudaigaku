@@ -194,7 +194,7 @@ watch(
 
 <template>
     <v-container fluid>
-        <v-breadcrumbs class="px-0 mb-2">
+        <v-breadcrumbs class="px-0 mb-2" style="flex-wrap: wrap; row-gap: 4px">
             <v-breadcrumbs-item @click="navigateToHome" style="cursor: pointer">
                 <v-icon icon="mdi-home" size="small" class="me-1"></v-icon>
                 Dashboard
@@ -245,7 +245,7 @@ watch(
         <div v-else>
             <v-list
                 v-if="currentFolders.length > 0 || currentFiles.length > 0"
-                class="rounded-lg pa-2"
+                class="rounded-lg pa-2 mb-10"
             >
                 <v-list-item
                     v-for="folder in currentFolders"
