@@ -46,6 +46,12 @@ const handleClose = () => {
     emit("close");
     isOpen.value = false;
 };
+
+const openInNewWindow = () => {
+    if (props.previewUrl) {
+        window.open(props.previewUrl, "_blank");
+    }
+};
 </script>
 
 <template>
@@ -91,7 +97,7 @@ const handleClose = () => {
                     @click="handleClose"
                 ></v-btn>
             </v-card-title>
-
+            
             <v-card-text
                 class="text-center pa-4"
                 style="max-height: 70vh; overflow: auto"
@@ -162,16 +168,29 @@ const handleClose = () => {
                 </div>
             </v-card-text>
 
-            <v-card-actions class="justify-end px-4 pb-3">
-                <v-btn
-                    color="primary"
-                    class="font-weight-bold"
-                    variant="flat"
-                    :href="previewUrl ?? undefined"
-                    :download="file?.originalName"
-                >
-                    Download File
-                </v-btn>
+            <v-card-actions class="justify-between px-4 pb-3">
+                <div class="d-flex gap-2">
+                    <v-btn
+                        color="grey-darken-1"
+                        class="mr-2"
+                        variant="text"
+                        prepend-icon="mdi-open-in-new"
+                        @click="openInNewWindow"
+                        :disabled="!previewUrl"
+                    >
+                        New Window
+                    </v-btn>
+
+                    <v-btn
+                        color="primary" 
+                        class="font-weight-bold"
+                        variant="flat"
+                        :href="previewUrl ?? undefined"
+                        :download="file?.originalName"
+                    >
+                        Download
+                    </v-btn>
+                </div>
             </v-card-actions>
         </v-card>
     </v-dialog>
