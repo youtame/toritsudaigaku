@@ -17,6 +17,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { useAuth } from "@/composables/useAuth";
+import { useThemeSync } from "@/composables/useThemeSync";
 import TheHeader from "@/components/layouts/TheHeader.vue";
 import TheDrawer from "@/components/layouts/TheDrawer.vue";
 import TheFooter from "@/components/layouts/TheFooter.vue";
@@ -25,9 +26,11 @@ const route = useRoute();
 const drawer = ref(false);
 
 const { fetchUser } = useAuth();
+const { initTheme, cleanupTheme } = useThemeSync();
 
 onMounted(() => {
     fetchUser();
+    initTheme();
 });
 
 const isNotLogin = computed(() => {
