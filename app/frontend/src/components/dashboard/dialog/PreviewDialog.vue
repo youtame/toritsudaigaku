@@ -63,11 +63,17 @@ const renderMermaid = async () => {
     await nextTick();
     if (markdownContainer.value) {
         try {
-            const mermaidElements = markdownContainer.value.querySelectorAll("code.language-mermaid");
+            const mermaidElements = markdownContainer.value.querySelectorAll(
+                "code.language-mermaid",
+            );
             if (mermaidElements.length > 0) {
                 mermaidElements.forEach((el) => {
                     const pre = el.parentElement;
-                    if (pre && pre.tagName === "PRE" && !pre.classList.contains("mermaid")) {
+                    if (
+                        pre &&
+                        pre.tagName === "PRE" &&
+                        !pre.classList.contains("mermaid")
+                    ) {
                         pre.classList.add("mermaid");
                         pre.textContent = el.textContent;
                     }
@@ -111,15 +117,40 @@ const renderedMarkdown = computed(() => {
     if (!props.textContent) return "";
     const rawHtml = marked.parse(props.textContent) as string;
     return DOMPurify.sanitize(rawHtml, {
-        ADD_TAGS: ["svg", "g", "path", "rect", "circle", "line", "text", "tspan", "polygon", "marker"],
-        ADD_ATTR: ["viewBox", "xmlns", "class", "id", "d", "x", "y", "width", "height", "fill", "stroke", "stroke-width", "transform"],
+        ADD_TAGS: [
+            "svg",
+            "g",
+            "path",
+            "rect",
+            "circle",
+            "line",
+            "text",
+            "tspan",
+            "polygon",
+            "marker",
+        ],
+        ADD_ATTR: [
+            "viewBox",
+            "xmlns",
+            "class",
+            "id",
+            "d",
+            "x",
+            "y",
+            "width",
+            "height",
+            "fill",
+            "stroke",
+            "stroke-width",
+            "transform",
+        ],
     });
 });
 
 const isMarkdownFile = computed(() => {
     const mime = props.file?.mimeType;
     const name = props.file?.originalName?.toLowerCase() ?? "";
-    
+
     return (
         mime === "text/markdown" ||
         mime === "text/x-markdown" ||
@@ -176,10 +207,20 @@ const isMarkdownFile = computed(() => {
                         color="primary"
                         variant="outlined"
                     >
-                        <v-btn value="preview" size="small" title="Preview" style="min-width: 36px;">
+                        <v-btn
+                            value="preview"
+                            size="small"
+                            title="Preview"
+                            style="min-width: 36px"
+                        >
                             <v-icon icon="mdi-eye-outline"></v-icon>
                         </v-btn>
-                        <v-btn value="source" size="small" title="Source" style="min-width: 36px;">
+                        <v-btn
+                            value="source"
+                            size="small"
+                            title="Source"
+                            style="min-width: 36px"
+                        >
                             <v-icon icon="mdi-code-braces"></v-icon>
                         </v-btn>
                     </v-btn-toggle>
@@ -192,7 +233,7 @@ const isMarkdownFile = computed(() => {
                     @click="handleClose"
                 ></v-btn>
             </v-card-title>
-            
+
             <v-card-text
                 class="text-center pa-4"
                 style="max-height: 70vh; overflow: auto"
@@ -231,8 +272,8 @@ const isMarkdownFile = computed(() => {
                     >
                         <vue-pdf-embed
                             class="pdf-responsive"
-                            :source="previewUrl ?? undefined"
-                            :scale="1.5"
+                            :source="previewUrl || ''"
+                            :scale="1.2"
                         />
                     </div>
                 </div>
@@ -302,7 +343,7 @@ const isMarkdownFile = computed(() => {
                     </v-btn>
 
                     <v-btn
-                        color="primary" 
+                        color="primary"
                         class="font-weight-bold"
                         variant="flat"
                         :href="previewUrl ?? undefined"
