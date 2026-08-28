@@ -54,7 +54,6 @@ const formatFileSize = (bytes: number) => {
                         >
                         <p class="mt-1">{{ file.mimeType }}</p>
                     </div>
-                    <!-- ▼ 追加：暗号化ステータスの表示 -->
                     <div class="mb-2">
                         <span class="text-grey-darken-1 font-weight-bold"
                             >Security:</span

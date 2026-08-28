@@ -11,6 +11,9 @@ import { mdi } from "vuetify/iconsets/mdi";
 import "vuetify/styles";
 import { createVuetify } from "vuetify";
 
+// CSS
+import "./assets/main.css";
+
 const vuetify = createVuetify({
     theme: {
         defaultTheme: "light",
