@@ -79,10 +79,14 @@ const folders = computed<FolderItem[]>(() => {
 });
 
 const rootFiles = computed(() => {
-    return allFiles.value.filter((file) => {
+    const filtered = allFiles.value.filter((file) => {
         if (file.originalName.endsWith("/.placeholder")) return false;
         return !file.originalName.includes("/");
     });
+
+    return filtered.sort((a, b) =>
+        a.originalName.localeCompare(b.originalName),
+    );
 });
 
 const handleFolderClick = (folderName: string) => {
