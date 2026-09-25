@@ -3,6 +3,9 @@
 import { ref, computed, watch, nextTick, onMounted } from "vue";
 import VuePdfEmbed from "vue-pdf-embed";
 import { marked } from "marked";
+import markedKatex from "marked-katex-extension";
+import katex from "katex";
+import "katex/dist/katex.min.css";
 import DOMPurify from "dompurify";
 import mermaid from "mermaid";
 import type { FileItem } from "@/services/api";
@@ -32,6 +35,16 @@ watch(isOpen, (val) => {
         renderMermaid();
     }
 });
+
+marked.use(
+    markedKatex({
+        throwOnError: false,
+        errorColor: "#ff0000",
+        macros: {
+            "\\R": "\\mathbb{R}",
+        },
+    }),
+);
 
 const zoomLevel = ref<number>(1.0);
 const markdownViewMode = ref<"preview" | "source">("preview");
@@ -128,6 +141,39 @@ const renderedMarkdown = computed(() => {
             "tspan",
             "polygon",
             "marker",
+
+            "span",
+            "div",
+            "math",
+            "mi",
+            "mo",
+            "mn",
+            "mrow",
+            "msup",
+            "msub",
+            "mfrac",
+            "msqrt",
+            "mroot",
+            "mtable",
+            "mtr",
+            "mtd",
+            "mtext",
+            "menclose",
+            "semantics",
+            "annotation",
+            "mpadded",
+            "mphantom",
+            "mstyle",
+            "merror",
+            "munderover",
+            "munder",
+            "mover",
+            "table",
+            "tr",
+            "td",
+            "tbody",
+            "thead",
+            "tfoot",
         ],
         ADD_ATTR: [
             "viewBox",
@@ -143,10 +189,25 @@ const renderedMarkdown = computed(() => {
             "stroke",
             "stroke-width",
             "transform",
+
+            "style",
+            "aria-hidden",
+            "focusable",
+            "rowspan",
+            "columnspan",
+            "data-semantic",
+            "columnalign",
+            "rowalign",
+            "fence",
+            "accent",
+            "accentunder",
+            "stretchy",
+            "symmetric",
+            "maxsize",
+            "minsize",
         ],
     });
 });
-
 const isMarkdownFile = computed(() => {
     const mime = props.file?.mimeType;
     const name = props.file?.originalName?.toLowerCase() ?? "";

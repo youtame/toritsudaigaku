@@ -88,22 +88,32 @@ const currentFolders = computed<FolderItem[]>(() => {
         }
     });
 
-    return Array.from(folderMap.entries()).map(([name, placeholderFile]) => ({
-        name,
-        fullPath: `${prefix}${name}`,
-        placeholderFile,
-    }));
+    const foldersArray = Array.from(folderMap.entries()).map(
+        ([name, placeholderFile]) => ({
+            name,
+            fullPath: `${prefix}${name}`,
+            placeholderFile,
+        }),
+    );
+
+    return foldersArray.sort((a, b) => a.name.localeCompare(b.name));
 });
 
 const currentFiles = computed(() => {
     const prefix = currentPath.value ? `${currentPath.value}/` : "";
 
-    return allFiles.value.filter((file) => {
+    const filteredFiles = allFiles.value.filter((file) => {
         if (file.originalName.endsWith("/.placeholder")) return false;
         if (!file.originalName.startsWith(prefix)) return false;
 
         const relativePath = file.originalName.slice(prefix.length);
         return !relativePath.includes("/");
+    });
+
+    return filteredFiles.sort((a, b) => {
+        const nameA = a.originalName.split("/").pop() || "";
+        const nameB = b.originalName.split("/").pop() || "";
+        return nameA.localeCompare(nameB);
     });
 });
 
