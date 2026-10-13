@@ -98,7 +98,6 @@ export async function decryptData(
         ["decrypt"],
     );
 
-    const decryptedBuffer = await window.crypto.subtle.encrypt;
     const decryptedBufferActual = await window.crypto.subtle.decrypt(
         { name: "AES-GCM", iv: iv },
         aesKey,

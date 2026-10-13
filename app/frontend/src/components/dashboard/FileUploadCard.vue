@@ -133,7 +133,7 @@ const isFormInvalid = computed(() => {
 
                 <v-card-text class="px-1 py-2">
                     <p class="text-caption text-grey-darken-1 mb-4">
-                        Maximum file size: 50MB
+                        Maximum file size: 100MB
                     </p>
 
                     <div class="mb-4">

@@ -21,6 +21,9 @@ router.use(isAuthenticated);
 
 router.get("/", fileController.getMyFiles);
 
+router.get("/recent", fileController.getRecentFiles);
+router.get("/recent/:limit", fileController.getRecentFiles);
+
 router.post("/upload-url", fileController.requestUploadUrl);
 
 router.post("/folders", fileController.createFolder);

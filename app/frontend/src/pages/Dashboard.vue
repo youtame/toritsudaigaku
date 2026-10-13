@@ -13,36 +13,34 @@ import FolderCreateCard from "@/components/dashboard/FolderCreateCard.vue";
 const router = useRouter();
 
 const files = ref<FileItem[]>([]);
+const isLoading = ref(true);
+
 const recentFilesRef = ref<InstanceType<typeof RecentFiles> | null>(null);
-const homeFilesRef = ref<InstanceType<typeof HomeFiles> | null>(null);
 
 const fetchDashboardFiles = async () => {
+    isLoading.value = true;
     try {
         const data = await fileApi.getMyFiles();
-        console.log("Fetched Files:", data);
         files.value = data;
     } catch (error) {
         console.error("Failed to fetch dashboard files", error);
+    } finally {
+        isLoading.value = false;
     }
 };
 
 const handleDataChanged = () => {
     fetchDashboardFiles();
+
     if (recentFilesRef.value) {
         recentFilesRef.value.fetchFiles();
     }
-    if (homeFilesRef.value) {
-        homeFilesRef.value.fetchFiles();
-    }
-};
-
-const handleFileUploaded = () => {
-    handleDataChanged();
 };
 
 const handleNavigateFolder = (folderName: string) => {
     router.push(`/dashboard/folder/${folderName}`);
 };
+
 onMounted(() => {
     fetchDashboardFiles();
 });
@@ -53,11 +51,8 @@ onMounted(() => {
         <h1 class="main-title">Dashboard</h1>
 
         <div class="mb-8">
-            <h2 class="sub-title d-flex align-center">
-                <span>Storage</span>
-            </h2>
+            <h2 class="sub-title d-flex align-center"><span>Storage</span></h2>
             <v-divider :thickness="2" class="mt-2"></v-divider>
-
             <StorageUsageBar :files="files" class="mt-4" />
         </div>
 
@@ -66,7 +61,6 @@ onMounted(() => {
                 <span>Recently Uploaded</span>
             </h2>
             <v-divider :thickness="2" class="mt-2"></v-divider>
-
             <RecentFiles
                 ref="recentFilesRef"
                 @file-deleted="handleDataChanged"
@@ -75,22 +69,21 @@ onMounted(() => {
         </div>
 
         <div class="mb-6">
-            <h2 class="sub-title d-flex align-center">
-                <span>Home</span>
-            </h2>
+            <h2 class="sub-title d-flex align-center"><span>Home</span></h2>
             <v-divider :thickness="2" class="mt-2"></v-divider>
 
             <v-row dense class="mt-4 action-row">
-                <v-col cols="auto">
-                    <FileUploadCard @uploaded="handleDataChanged" />
-                </v-col>
-                <v-col cols="auto">
-                    <FolderCreateCard @folder-created="handleDataChanged" />
-                </v-col>
+                <v-col cols="auto"
+                    ><FileUploadCard @uploaded="handleDataChanged"
+                /></v-col>
+                <v-col cols="auto"
+                    ><FolderCreateCard @folder-created="handleDataChanged"
+                /></v-col>
             </v-row>
 
             <HomeFiles
-                ref="homeFilesRef"
+                :files="files"
+                :is-loading="isLoading"
                 @navigate-folder="handleNavigateFolder"
                 @file-deleted="handleDataChanged"
                 class="mt-4"
@@ -98,19 +91,3 @@ onMounted(() => {
         </div>
     </v-container>
 </template>
-
-<style lang="scss" scoped>
-.main-title {
-    font-size: clamp(32px, 5vw, 40px);
-    margin-bottom: 10px;
-}
-
-.sub-title {
-    font-size: clamp(24px, 5vw, 25px);
-    margin-bottom: 0;
-}
-
-.action-row {
-    gap: 8px;
-}
-</style>

@@ -1,6 +1,6 @@
 // src/controllers/fileController.ts
 import { Request, Response } from "express";
-import { eq, and, like, or, inArray } from "drizzle-orm";
+import { eq, and, like, or, inArray, desc, not } from "drizzle-orm";
 import { db } from "../db";
 import { files, filePermissions, users } from "../db/schema";
 import { s3Service } from "../services/s3Service";
@@ -61,9 +61,77 @@ export const fileController = {
         }
     },
 
+    async getRecentFiles(req: Request, res: Response) {
+        try {
+            const userId = (req.session as any)?.userId;
+            if (!userId) {
+                return res.status(401).json({ error: "Unauthorized" });
+            }
+
+            const limitParam = req.params.limit;
+            const limit = limitParam ? parseInt(limitParam, 10) : 5;
+
+            const safeLimit = isNaN(limit) || limit <= 0 ? 5 : limit;
+
+            const recentUserFiles = await db
+                .select({
+                    id: files.id,
+                    userId: files.userId,
+                    s3Key: files.s3Key,
+                    originalName: files.originalName,
+                    fileSize: files.fileSize,
+                    mimeType: files.mimeType,
+                    isEncrypted: files.isEncrypted,
+                    encryptionMetadata: files.encryptionMetadata,
+                    createdAt: files.createdAt,
+                })
+                .from(files)
+                .innerJoin(
+                    filePermissions,
+                    eq(files.id, filePermissions.fileId),
+                )
+                .where(
+                    and(
+                        eq(filePermissions.userId, userId),
+                        not(like(files.originalName, "%/.placeholder")),
+                    ),
+                )
+                .orderBy(desc(files.createdAt))
+                .limit(safeLimit);
+
+            const filesWithUrls = await Promise.all(
+                recentUserFiles.map(async (file) => {
+                    const downloadUrl = await s3Service.getDownloadUrl(
+                        file.s3Key,
+                        file.originalName,
+                    );
+
+                    return {
+                        id: file.id,
+                        originalName: file.originalName,
+                        fileSize: file.fileSize,
+                        mimeType: file.mimeType,
+                        isEncrypted: file.isEncrypted,
+                        encryptionMetadata: file.encryptionMetadata,
+                        createdAt: file.createdAt,
+                        downloadUrl: downloadUrl,
+                        isOwner: file.userId === userId,
+                    };
+                }),
+            );
+
+            return res.status(200).json({ files: filesWithUrls });
+        } catch (error) {
+            console.error("Error fetching recent files:", error);
+            return res
+                .status(500)
+                .json({ error: "Failed to retrieve recent files" });
+        }
+    },
+
     async requestUploadUrl(req: Request, res: Response) {
         try {
-            const MAX_FILE_SIZE = 50 * 1024 * 1024;
+            const MAX_FILE_SIZE = 100 * 1024 * 1024;
             const ALLOWED_MIME_TYPES = [
                 "text/plain",
                 "text/markdown",
@@ -97,7 +165,7 @@ export const fileController = {
 
             if (Number(fileSize) > MAX_FILE_SIZE) {
                 return res.status(400).json({
-                    error: "File size exceeds the maximum limit (50MB)",
+                    error: "File size exceeds the maximum limit (100MB)",
                 });
             }
 

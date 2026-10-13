@@ -119,15 +119,7 @@ const openDetailsDialog = (file: FileItem) => {
 
 const fetchFiles = async () => {
     try {
-        const allFiles = await fileApi.getMyFiles();
-        files.value = allFiles
-            .filter((file) => !file.originalName.endsWith("/.placeholder"))
-            .sort(
-                (a, b) =>
-                    new Date(b.createdAt).getTime() -
-                    new Date(a.createdAt).getTime(),
-            )
-            .slice(0, 3);
+        files.value = await fileApi.getRecentFiles(5);
     } catch (error) {
         showSnackbar("Failed to fetch recent files", "error");
     } finally {

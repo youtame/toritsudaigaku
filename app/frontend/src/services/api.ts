@@ -40,6 +40,23 @@ export const fileApi = {
         return data.files;
     },
 
+    async getRecentFiles(limit: number = 3): Promise<FileItem[]> {
+        const response = await fetch(`${backendUrl}/recent/${limit}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+        });
+
+        if (!response.ok) {
+            throw new Error("Error: Failed to retrieve recent files data.");
+        }
+
+        const data = await response.json();
+        return data.files;
+    },
+
     async requestUploadUrl(metadata: {
         originalName: string;
         fileSize: number;
