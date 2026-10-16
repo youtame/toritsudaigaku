@@ -91,3 +91,19 @@ onMounted(() => {
         </div>
     </v-container>
 </template>
+
+<style lang="scss" scoped>
+.main-title {
+    font-size: clamp(32px, 5vw, 40px);
+    margin-bottom: 10px;
+}
+
+.sub-title {
+    font-size: clamp(24px, 5vw, 25px);
+    margin-bottom: 0;
+}
+
+.action-row {
+    gap: 8px;
+}
+</style>

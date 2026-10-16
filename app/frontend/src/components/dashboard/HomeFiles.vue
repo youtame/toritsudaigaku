@@ -119,7 +119,7 @@ const confirmDelete = async () => {
 };
 
 const isShareDialogVisible = ref(false);
-const fileToShare = ref<FileItem | null>(-null); // null
+const fileToShare = ref<FileItem | null>(null); // null
 const openShareDialog = (file: FileItem) => {
     fileToShare.value = file;
     isShareDialogVisible.value = true;
@@ -155,7 +155,6 @@ const openDetailsDialog = (file: FileItem) => {
                 v-if="folders.length > 0 || rootFiles.length > 0"
                 class="rounded-lg pa-2 mb-10"
             >
-                <!-- フォルダ一覧 -->
                 <v-list-item
                     v-for="folder in folders"
                     :key="'folder-' + folder.name"
@@ -218,7 +217,6 @@ const openDetailsDialog = (file: FileItem) => {
                     </template>
                 </v-list-item>
 
-                <!-- ルートファイル一覧 -->
                 <v-list-item
                     v-for="file in rootFiles"
                     :key="String(file.id)"

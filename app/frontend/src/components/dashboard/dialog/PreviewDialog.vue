@@ -443,13 +443,15 @@ const isMarkdownFile = computed(() => {
     margin-bottom: 12px;
 }
 .markdown-body :deep(code) {
-    background-color: rgba(0, 0, 0, 0.05);
-    padding: 2px 4px;
+    background-color: rgba(128, 128, 128, 0.15);
+    padding: 2px 6px;
     border-radius: 4px;
     font-family: monospace;
+    font-size: 0.875em;
 }
 .markdown-body :deep(pre) {
-    background-color: #f6f8fa;
+    background-color: rgba(128, 128, 128, 0.08);
+    border: 1px solid rgba(128, 128, 128, 0.2);
     padding: 12px;
     border-radius: 6px;
     overflow-x: auto;
