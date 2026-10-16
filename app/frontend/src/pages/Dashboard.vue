@@ -13,6 +13,7 @@ import FolderCreateCard from "@/components/dashboard/FolderCreateCard.vue";
 const router = useRouter();
 
 const files = ref<FileItem[]>([]);
+const storageFiles = ref<any[]>([]);
 const isLoading = ref(true);
 
 const recentFilesRef = ref<InstanceType<typeof RecentFiles> | null>(null);
@@ -20,8 +21,16 @@ const recentFilesRef = ref<InstanceType<typeof RecentFiles> | null>(null);
 const fetchDashboardFiles = async () => {
     isLoading.value = true;
     try {
-        const data = await fileApi.getMyFiles();
-        files.value = data;
+        const [allFilesData, usageData] = await Promise.all([
+            fileApi.getMyFiles(),
+            fileApi.getStorageUsage(),
+        ]);
+
+        console.log("usageDataの中身:", usageData);
+        console.log("usageData.filesの中身:", usageData.files);
+
+        files.value = allFilesData;
+        storageFiles.value = usageData.files;
     } catch (error) {
         console.error("Failed to fetch dashboard files", error);
     } finally {
@@ -53,7 +62,7 @@ onMounted(() => {
         <div class="mb-8">
             <h2 class="sub-title d-flex align-center"><span>Storage</span></h2>
             <v-divider :thickness="2" class="mt-2"></v-divider>
-            <StorageUsageBar :files="files" class="mt-4" />
+            <StorageUsageBar :files="storageFiles" class="mt-4" />
         </div>
 
         <div class="mb-6">

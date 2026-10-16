@@ -1,7 +1,6 @@
 // src/services/api.ts
 
-const baseUrl =
-    import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api/files";
+const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/";
 
 const backendUrl = `${baseUrl}/api/files`;
 
@@ -176,5 +175,29 @@ export const fileApi = {
         if (!response.ok) {
             throw new Error("Error: Failed to create folder.");
         }
+    },
+
+    async getStorageUsage(): Promise<{
+        totalSize: number;
+        categories: Array<{
+            label: string;
+            size: number;
+            percentage: number;
+            color: string;
+        }>;
+    }> {
+        const response = await fetch(`${backendUrl}/usage`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+        });
+
+        if (!response.ok) {
+            throw new Error("Error: Failed to retrieve storage usage summary.");
+        }
+
+        return await response.json();
     },
 };

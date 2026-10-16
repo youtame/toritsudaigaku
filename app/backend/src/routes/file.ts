@@ -1,3 +1,4 @@
+// src/routes/file.ts
 import { Router } from "express";
 import { fileController } from "../controllers/fileController";
 import { isAuthenticated } from "../middlewares/auth"; // Adjust import path if needed
@@ -38,5 +39,7 @@ router.delete(
     "/:fileId/permissions/:targetUserId",
     fileController.revokePermission,
 );
+
+router.get("/usage", fileController.getStorageUsage);
 
 export default router;
