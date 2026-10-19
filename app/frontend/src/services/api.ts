@@ -198,13 +198,15 @@ export const fileApi = {
     },
 
     async getStorageUsage(): Promise<{
-        totalSize: number;
-        categories: Array<{
-            label: string;
-            size: number;
-            percentage: number;
-            color: string;
-        }>;
+        usage: {
+            totalSize: number;
+            categories: Array<{
+                label: string;
+                size: number;
+                percentage: number;
+                color: string;
+            }>;
+        };
     }> {
         const response = await fetch(`${backendUrl}/usage`, {
             method: "GET",
