@@ -11,7 +11,6 @@ const s3Client = new S3Client({});
 const BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME!;
 
 export const s3Service = {
-    // Download files(Signature URL)
     async getDownloadUrl(
         s3Key: string,
         originalName?: string,

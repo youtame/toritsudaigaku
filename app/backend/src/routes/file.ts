@@ -1,3 +1,4 @@
+// src/routes/file.ts
 import { Router } from "express";
 import { fileController } from "../controllers/fileController";
 import { isAuthenticated } from "../middlewares/auth"; // Adjust import path if needed
@@ -21,6 +22,10 @@ router.use(isAuthenticated);
 
 router.get("/", fileController.getMyFiles);
 
+router.get("/recent", fileController.getRecentFiles);
+router.get("/recent/:limit", fileController.getRecentFiles);
+router.get("/path", fileController.getFilesPath);
+
 router.post("/upload-url", fileController.requestUploadUrl);
 
 router.post("/folders", fileController.createFolder);
@@ -35,5 +40,7 @@ router.delete(
     "/:fileId/permissions/:targetUserId",
     fileController.revokePermission,
 );
+
+router.get("/usage", fileController.getStorageUsage);
 
 export default router;

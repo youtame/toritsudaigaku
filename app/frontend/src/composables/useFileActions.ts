@@ -154,7 +154,7 @@ export function useFileActions(
     };
 
     const closePreview = () => {
-        if (previewUrl.value?.startsWith("blob:")) {
+        if (previewUrl.value && previewUrl.value.startsWith("blob:")) {
             window.URL.revokeObjectURL(previewUrl.value);
         }
         previewUrl.value = null;
@@ -162,6 +162,10 @@ export function useFileActions(
         previewTextContent.value = null;
         isPreviewDialogOpen.value = false;
     };
+
+    if (previewUrl.value && previewUrl.value.startsWith("blob:")) {
+        window.URL.revokeObjectURL(previewUrl.value);
+    }
 
     return {
         isDecrypting,

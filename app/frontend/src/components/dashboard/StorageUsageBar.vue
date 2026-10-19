@@ -1,42 +1,34 @@
 <!-- src/components/dashboard/StorageUsageBar.vue -->
 <script setup lang="ts">
 import { computed } from "vue";
-import type { FileItem } from "@/services/api";
 
-const props = defineProps<{
-    files: FileItem[];
-}>();
-
-interface CategoryInfo {
-    label: string;
-    color: string;
+interface UsageSummary {
+    totalSize: number;
+    categories: Array<{
+        label: string;
+        size: number;
+        percentage: number;
+        color?: string;
+    }>;
 }
 
-const getFileCategoryInfo = (file: FileItem): CategoryInfo => {
-    if (file.isEncrypted) {
-        return { label: "Encrypted", color: "lock" };
-    }
+const props = defineProps<{
+    files: UsageSummary;
+}>();
 
-    const mime = file.mimeType.toLowerCase();
-
-    if (mime.startsWith("image/")) {
-        return { label: "Images", color: "#009200" };
-    }
-    if (mime === "application/pdf") {
-        return { label: "PDF", color: "#085d41" };
-    }
-    if (mime.includes("markdown") || mime.includes("text/plain")) {
-        return { label: "Documents", color: "#10b981" };
-    }
-    if (mime === "application/json") {
-        return { label: "JSON", color: "#84aea0" };
-    }
-
-    return { label: "Other", color: "#6b7280" };
+const getCategoryColor = (label: string): string => {
+    const l = label.toLowerCase();
+    if (l.includes("image")) return "#009200";
+    if (l.includes("pdf")) return "#085d41";
+    if (l.includes("document") || l.includes("text") || l.includes("markdown"))
+        return "#10b981";
+    if (l.includes("json")) return "#84aea0";
+    if (l.includes("encrypt")) return "lock";
+    return "#6b7280";
 };
 
 const formatBytes = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
+    if (!bytes || bytes === 0) return "0 Bytes";
     const k = 1024;
     const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -44,35 +36,17 @@ const formatBytes = (bytes: number) => {
 };
 
 const usageStats = computed(() => {
-    const categoryMap: {
-        [key: string]: { size: number; color: string; label: string };
-    } = {};
-    let totalSize = 0;
+    if (!props.files || !props.files.categories) {
+        return { totalSize: 0, categories: [] };
+    }
 
-    props.files.forEach((file) => {
-        if (file.originalName.endsWith("/.placeholder")) return;
-
-        const info = getFileCategoryInfo(file);
-        if (!categoryMap[info.label]) {
-            categoryMap[info.label] = {
-                size: 0,
-                color: info.color,
-                label: info.label,
-            };
-        }
-        categoryMap[info.label]!.size += file.fileSize;
-        totalSize += file.fileSize;
-    });
-
-    const categories = Object.values(categoryMap).map((cat) => ({
+    const categories = props.files.categories.map((cat) => ({
         ...cat,
-        percentage: totalSize > 0 ? (cat.size / totalSize) * 100 : 0,
+        color: cat.color || getCategoryColor(cat.label),
     }));
 
-    categories.sort((a, b) => b.size - a.size);
-
     return {
-        totalSize,
+        totalSize: props.files.totalSize || 0,
         categories,
     };
 });

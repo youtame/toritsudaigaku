@@ -1,6 +1,6 @@
 <!-- src/components/dashboard/HomeFiles.vue -->
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { computed, ref } from "vue";
 import { fileApi, type FileItem } from "@/services/api";
 import { getFileIcon } from "@/utils/getFileIcon";
 import { useFileActions } from "@/composables/useFileActions";
@@ -11,15 +11,17 @@ import DeleteDialog from "./dialog/DeleteDialog.vue";
 import DecryptDialog from "./dialog/DecryptDialog.vue";
 import PreviewDialog from "./dialog/PreviewDialog.vue";
 
+const props = defineProps<{
+    files: FileItem[];
+    isLoading: boolean;
+}>();
+
 const emit = defineEmits<{
     (e: "navigate-folder", folderName: string): void;
     (e: "file-deleted"): void;
 }>();
 
-const allFiles = ref<FileItem[]>([]);
-const isLoading = ref(true);
 const isSharing = ref(false);
-const currentPath = ref("");
 
 const snackbar = ref({
     show: false,
@@ -54,15 +56,10 @@ const handlePreview = async (file: FileItem) => {
     await prepareFileAccess(file, "preview");
 };
 
-interface FolderItem {
-    name: string;
-    placeholderFile: FileItem;
-}
-
-const folders = computed<FolderItem[]>(() => {
+const folders = computed(() => {
     const folderMap = new Map<string, FileItem>();
 
-    allFiles.value.forEach((file) => {
+    props.files.forEach((file) => {
         if (file.originalName.endsWith("/.placeholder")) {
             const parts = file.originalName.split("/");
             const topFolderName = parts[0];
@@ -79,7 +76,7 @@ const folders = computed<FolderItem[]>(() => {
 });
 
 const rootFiles = computed(() => {
-    const filtered = allFiles.value.filter((file) => {
+    const filtered = props.files.filter((file) => {
         if (file.originalName.endsWith("/.placeholder")) return false;
         return !file.originalName.includes("/");
     });
@@ -108,11 +105,6 @@ const confirmDelete = async () => {
     isDeleting.value = true;
     try {
         await fileApi.deleteFile(String(fileToDelete.value.id));
-
-        allFiles.value = allFiles.value.filter(
-            (f) => f.id !== fileToDelete.value?.id,
-        );
-
         isDeleteDialogOpen.value = false;
         fileToDelete.value = null;
         showSnackbar("File deleted successfully");
@@ -127,7 +119,7 @@ const confirmDelete = async () => {
 };
 
 const isShareDialogVisible = ref(false);
-const fileToShare = ref<FileItem | null>(null);
+const fileToShare = ref<FileItem | null>(null); // null
 const openShareDialog = (file: FileItem) => {
     fileToShare.value = file;
     isShareDialogVisible.value = true;
@@ -150,20 +142,6 @@ const openDetailsDialog = (file: FileItem) => {
     fileDetails.value = file;
     isDetailsDialogVisible.value = true;
 };
-
-const fetchFiles = async () => {
-    try {
-        const data = await fileApi.getMyFiles();
-        allFiles.value = data;
-    } catch (error) {
-        showSnackbar("Failed to fetch home files", "error");
-    } finally {
-        isLoading.value = false;
-    }
-};
-
-onMounted(fetchFiles);
-defineExpose({ fetchFiles });
 </script>
 
 <template>
