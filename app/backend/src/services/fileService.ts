@@ -71,7 +71,77 @@ export const fileService = {
         );
     },
 
-    // 2. Get Recent Files
+    // 2. Get Files by Path
+    async getFilesPath(userId: string, currentPath: string) {
+        const userFiles = await db
+            .select({
+                id: files.id,
+                userId: files.userId,
+                s3Key: files.s3Key,
+                originalName: files.originalName,
+                fileSize: files.fileSize,
+                mimeType: files.mimeType,
+                isEncrypted: files.isEncrypted,
+                encryptionMetadata: files.encryptionMetadata,
+                createdAt: files.createdAt,
+            })
+            .from(files)
+            .innerJoin(filePermissions, eq(files.id, filePermissions.fileId))
+            .where(eq(filePermissions.userId, userId));
+
+        const normalizedPath = currentPath
+            ? currentPath.replace(/\/+$/, "") + "/"
+            : "";
+        const depth = normalizedPath ? normalizedPath.split("/").length - 1 : 0;
+
+        const filteredFiles = userFiles.filter((file) => {
+            const name = file.originalName;
+
+            if (!normalizedPath) {
+                if (!name.includes("/")) return true;
+                if (
+                    name.endsWith("/.placeholder") &&
+                    name.split("/").length === 2
+                )
+                    return true;
+                return false;
+            }
+
+            if (name.startsWith(normalizedPath)) {
+                const relativePath = name.slice(normalizedPath.length);
+                if (!relativePath) return false;
+
+                const parts = relativePath.split("/");
+                if (parts.length === 1) return true;
+                if (parts.length === 2 && parts[1] === ".placeholder")
+                    return true;
+            }
+
+            return false;
+        });
+
+        return await Promise.all(
+            filteredFiles.map(async (file) => {
+                const downloadUrl = await s3Service.getDownloadUrl(
+                    file.s3Key,
+                    file.originalName,
+                );
+                return {
+                    id: file.id,
+                    originalName: file.originalName,
+                    fileSize: file.fileSize,
+                    mimeType: file.mimeType,
+                    isEncrypted: file.isEncrypted,
+                    encryptionMetadata: file.encryptionMetadata,
+                    createdAt: file.createdAt,
+                    downloadUrl: downloadUrl,
+                    isOwner: file.userId === userId,
+                };
+            }),
+        );
+    },
+
+    // 3. Get Recent Files
     async getRecentFilesForUser(userId: string, limit: number) {
         const recentUserFiles = await db
             .select({
@@ -117,7 +187,7 @@ export const fileService = {
         );
     },
 
-    // 3. Request S3 Upload URL
+    // 4. Request S3 Upload URL
     async requestUploadUrl(userId: string, body: any) {
         const {
             originalName,
@@ -173,7 +243,7 @@ export const fileService = {
         };
     },
 
-    // 4. Share File Permission
+    // 5. Share File Permission
     async shareFilePermission(
         currentUserId: string,
         fileId: string,
@@ -239,7 +309,7 @@ export const fileService = {
         }
     },
 
-    // 5. Delte File or Folder
+    // 6. Delte File or Folder
     async deleteFile(currentUserId: string, fileId: string) {
         const [targetFile] = await db
             .select()
@@ -285,7 +355,7 @@ export const fileService = {
         }
     },
 
-    // 6. Get S3 Downloads URL
+    // 7. Get S3 Downloads URL
     async getDownloadUrl(userId: string, fileId: string) {
         const [permission] = await db
             .select({
@@ -314,7 +384,7 @@ export const fileService = {
         };
     },
 
-    // 7. Revoke File Permission
+    // 8. Revoke File Permission
     async revokePermission(
         currentUserId: string,
         fileId: string,
@@ -339,7 +409,7 @@ export const fileService = {
             );
     },
 
-    // 8. Create Folder
+    // 9. Create Folder
     async createFolder(
         userId: string,
         folderName: string,
@@ -373,7 +443,7 @@ export const fileService = {
         return newFile.id;
     },
 
-    // 9. Get Storage Data
+    // 10. Get Storage Data
     async getStorageData(userId: string) {
         const rawFiles = await db
             .select({

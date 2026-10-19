@@ -2,25 +2,48 @@
 import { Request, Response } from "express";
 import { fileService } from "../services/fileService";
 
+const getUserId = (req: Request): string | undefined => {
+    return (req.session as any)?.userId;
+};
+
 export const fileController = {
     async getMyFiles(req: Request, res: Response) {
         try {
-            const userId = (req.session as any)?.userId;
+            const userId = getUserId(req);
             if (!userId) {
                 return res.status(401).json({ error: "Unauthorized" });
             }
 
             const filesWithUrls = await fileService.getFilesForUser(userId);
             return res.status(200).json({ files: filesWithUrls });
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error fetching files:", error);
             return res.status(500).json({ error: "Failed to retrieve files" });
         }
     },
 
+    async getFilesPath(req: Request, res: Response) {
+        try {
+            const userId = getUserId(req);
+            if (!userId) {
+                return res.status(401).json({ error: "Unauthorized" });
+            }
+
+            const targetPath = (req.query.path as string) || "";
+
+            const files = await fileService.getFilesPath(userId, targetPath);
+            return res.status(200).json({ files });
+        } catch (error: any) {
+            console.error("Error fetching files by path:", error);
+            return res.status(500).json({
+                error: "Failed to retrieve files for the specified path",
+            });
+        }
+    },
+
     async getRecentFiles(req: Request, res: Response) {
         try {
-            const userId = (req.session as any)?.userId;
+            const userId = getUserId(req);
             if (!userId) {
                 return res.status(401).json({ error: "Unauthorized" });
             }
@@ -34,7 +57,7 @@ export const fileController = {
                 safeLimit,
             );
             return res.status(200).json({ files: filesWithUrls });
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error fetching recent files:", error);
             return res
                 .status(500)
@@ -44,7 +67,7 @@ export const fileController = {
 
     async requestUploadUrl(req: Request, res: Response) {
         try {
-            const userId = req.session.userId;
+            const userId = getUserId(req);
             if (!userId) {
                 return res.status(401).json({ error: "Unauthorized" });
             }
@@ -73,7 +96,7 @@ export const fileController = {
 
     async shareFilePermission(req: Request, res: Response) {
         try {
-            const currentUserId = req.session?.userId;
+            const currentUserId = getUserId(req);
             const { fileId } = req.params;
             const { targetEmail } = req.body;
 
@@ -106,7 +129,7 @@ export const fileController = {
 
     async deleteFile(req: Request, res: Response) {
         try {
-            const currentUserId = req.session.userId;
+            const currentUserId = getUserId(req);
             const { fileId } = req.params;
 
             if (!currentUserId) {
@@ -127,7 +150,7 @@ export const fileController = {
 
     async getDownloadUrl(req: Request, res: Response) {
         try {
-            const userId = req.session.userId;
+            const userId = getUserId(req);
             const { fileId } = req.params;
 
             if (!userId) {
@@ -150,7 +173,7 @@ export const fileController = {
 
     async revokePermission(req: Request, res: Response) {
         try {
-            const currentUserId = req.session.userId;
+            const currentUserId = getUserId(req);
             const { fileId, targetUserId } = req.params;
 
             if (!currentUserId) {
@@ -183,7 +206,7 @@ export const fileController = {
 
     async createFolder(req: Request, res: Response) {
         try {
-            const userId = req.session.userId;
+            const userId = getUserId(req);
             if (!userId) {
                 return res.status(401).json({ error: "Unauthorized" });
             }
@@ -215,14 +238,14 @@ export const fileController = {
 
     async getStorageUsage(req: Request, res: Response) {
         try {
-            const userId = (req.session as any)?.userId;
+            const userId = getUserId(req);
             if (!userId) {
                 return res.status(401).json({ error: "Unauthorized" });
             }
 
             const usageData = await fileService.getStorageData(userId);
-            return res.status(200).json({ files: usageData });
-        } catch (error) {
+            return res.status(200).json({ usage: usageData });
+        } catch (error: any) {
             console.error("Error fetching storage usage:", error);
             return res
                 .status(500)

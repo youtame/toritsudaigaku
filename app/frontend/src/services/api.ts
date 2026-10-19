@@ -39,6 +39,26 @@ export const fileApi = {
         return data.files;
     },
 
+    async getFilesByPath(path: string = ""): Promise<FileItem[]> {
+        const response = await fetch(
+            `${backendUrl}/path?path=${encodeURIComponent(path)}`,
+            {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+            },
+        );
+
+        if (!response.ok) {
+            throw new Error("Error: Failed to retrieve files by path.");
+        }
+
+        const data = await response.json();
+        return data.files;
+    },
+
     async getRecentFiles(limit: number = 3): Promise<FileItem[]> {
         const response = await fetch(`${backendUrl}/recent/${limit}`, {
             method: "GET",

@@ -24,6 +24,7 @@ router.get("/", fileController.getMyFiles);
 
 router.get("/recent", fileController.getRecentFiles);
 router.get("/recent/:limit", fileController.getRecentFiles);
+router.get("/path", fileController.getFilesPath);
 
 router.post("/upload-url", fileController.requestUploadUrl);
 

@@ -16,7 +16,7 @@ import FolderCreateCard from "@/components/dashboard/FolderCreateCard.vue";
 const route = useRoute();
 const router = useRouter();
 
-const allFiles = ref<FileItem[]>([]);
+const filesData = ref<FileItem[]>([]);
 const isLoading = ref(true);
 const isSharing = ref(false);
 
@@ -61,26 +61,16 @@ const {
     closePreview,
 } = useFileActions(showSnackbar);
 
-interface FolderItem {
-    name: string;
-    fullPath: string;
-    placeholderFile: FileItem;
-}
-
-const currentFolders = computed<FolderItem[]>(() => {
+const currentFolders = computed(() => {
     const prefix = currentPath.value ? `${currentPath.value}/` : "";
     const folderMap = new Map<string, FileItem>();
 
-    allFiles.value.forEach((file) => {
-        if (
-            file.originalName.endsWith("/.placeholder") &&
-            file.originalName.startsWith(prefix)
-        ) {
+    filesData.value.forEach((file) => {
+        if (file.originalName.endsWith("/.placeholder")) {
             const relativePath = file.originalName.slice(prefix.length);
             const parts = relativePath.split("/");
             if (parts.length > 1) {
                 const folderName = parts[0];
-                const fullPath = `${prefix}${folderName}`;
                 if (folderName && !folderMap.has(folderName)) {
                     folderMap.set(folderName, file);
                 }
@@ -88,33 +78,23 @@ const currentFolders = computed<FolderItem[]>(() => {
         }
     });
 
-    const foldersArray = Array.from(folderMap.entries()).map(
-        ([name, placeholderFile]) => ({
+    return Array.from(folderMap.entries())
+        .map(([name, placeholderFile]) => ({
             name,
             fullPath: `${prefix}${name}`,
             placeholderFile,
-        }),
-    );
-
-    return foldersArray.sort((a, b) => a.name.localeCompare(b.name));
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name));
 });
 
 const currentFiles = computed(() => {
-    const prefix = currentPath.value ? `${currentPath.value}/` : "";
-
-    const filteredFiles = allFiles.value.filter((file) => {
-        if (file.originalName.endsWith("/.placeholder")) return false;
-        if (!file.originalName.startsWith(prefix)) return false;
-
-        const relativePath = file.originalName.slice(prefix.length);
-        return !relativePath.includes("/");
-    });
-
-    return filteredFiles.sort((a, b) => {
-        const nameA = a.originalName.split("/").pop() || "";
-        const nameB = b.originalName.split("/").pop() || "";
-        return nameA.localeCompare(nameB);
-    });
+    return filesData.value
+        .filter((file) => !file.originalName.endsWith("/.placeholder"))
+        .sort((a, b) => {
+            const nameA = a.originalName.split("/").pop() || "";
+            const nameB = b.originalName.split("/").pop() || "";
+            return nameA.localeCompare(nameB);
+        });
 });
 
 const handleFolderClick = (fullPath: string) => {
@@ -145,9 +125,7 @@ const confirmDelete = async () => {
     isDeleting.value = true;
     try {
         await fileApi.deleteFile(String(fileToDelete.value.id));
-        allFiles.value = allFiles.value.filter(
-            (f) => f.id !== fileToDelete.value?.id,
-        );
+        await fetchData();
         isDeleteDialogOpen.value = false;
         fileToDelete.value = null;
         showSnackbar("Deleted successfully");
@@ -186,7 +164,7 @@ const openDetailsDialog = (file: FileItem) => {
 const fetchData = async () => {
     isLoading.value = true;
     try {
-        allFiles.value = await fileApi.getMyFiles();
+        filesData.value = await fileApi.getFilesByPath(currentPath.value);
     } catch (error) {
         showSnackbar("Failed to fetch folder contents", "error");
     } finally {
@@ -195,10 +173,11 @@ const fetchData = async () => {
 };
 
 onMounted(fetchData);
-
 watch(
-    () => route.params.pathMatch,
-    () => {},
+    () => currentPath.value,
+    () => {
+        fetchData();
+    },
 );
 </script>
 
@@ -223,9 +202,9 @@ watch(
                 >
                     {{ crumb.title }}
                 </v-breadcrumbs-item>
-                <v-breadcrumbs-divider v-if="index < breadcrumbs.length - 1"
-                    >/</v-breadcrumbs-divider
-                >
+                <v-breadcrumbs-divider v-if="index < breadcrumbs.length - 1">
+                    /
+                </v-breadcrumbs-divider>
             </template>
         </v-breadcrumbs>
 
@@ -277,9 +256,11 @@ watch(
                     >
                         {{ folder.name }}
                     </v-list-item-title>
-                    <v-list-item-subtitle class="text-body-2 text-grey-darken-1"
-                        >Folder</v-list-item-subtitle
+                    <v-list-item-subtitle
+                        class="text-body-2 text-grey-darken-1"
                     >
+                        Folder
+                    </v-list-item-subtitle>
 
                     <template v-slot:append>
                         <v-menu
@@ -302,11 +283,11 @@ watch(
                                         openDeleteDialog(folder.placeholderFile)
                                     "
                                 >
-                                    <template v-slot:prepend
-                                        ><v-icon size="small" color="error"
+                                    <template v-slot:prepend>
+                                        <v-icon size="small" color="error"
                                             >mdi-delete</v-icon
-                                        ></template
-                                    >
+                                        >
+                                    </template>
                                     <v-list-item-title class="text-error"
                                         >Delete</v-list-item-title
                                     >
@@ -375,41 +356,39 @@ watch(
                                     @click="openShareDialog(file)"
                                     v-if="file.isOwner"
                                 >
-                                    <template v-slot:prepend
-                                        ><v-icon size="small" color="primary"
+                                    <template v-slot:prepend>
+                                        <v-icon size="small" color="primary"
                                             >mdi-share-variant</v-icon
-                                        ></template
-                                    >
+                                        >
+                                    </template>
                                     <v-list-item-title class="text-primary"
                                         >Share</v-list-item-title
                                     >
                                 </v-list-item>
                                 <v-list-item @click="handlePreview(file)">
-                                    <template v-slot:prepend
-                                        ><v-icon size="small"
-                                            >mdi-eye</v-icon
-                                        ></template
-                                    >
+                                    <template v-slot:prepend>
+                                        <v-icon size="small">mdi-eye</v-icon>
+                                    </template>
                                     <v-list-item-title
                                         >Preview</v-list-item-title
                                     >
                                 </v-list-item>
                                 <v-list-item @click="handleDownload(file)">
-                                    <template v-slot:prepend
-                                        ><v-icon size="small"
+                                    <template v-slot:prepend>
+                                        <v-icon size="small"
                                             >mdi-download</v-icon
-                                        ></template
-                                    >
+                                        >
+                                    </template>
                                     <v-list-item-title
                                         >Download</v-list-item-title
                                     >
                                 </v-list-item>
                                 <v-list-item @click="openDetailsDialog(file)">
-                                    <template v-slot:prepend
-                                        ><v-icon size="small"
+                                    <template v-slot:prepend>
+                                        <v-icon size="small"
                                             >mdi-information-outline</v-icon
-                                        ></template
-                                    >
+                                        >
+                                    </template>
                                     <v-list-item-title
                                         >Details</v-list-item-title
                                     >
@@ -418,11 +397,11 @@ watch(
                                     v-if="file.isOwner"
                                     @click="openDeleteDialog(file)"
                                 >
-                                    <template v-slot:prepend
-                                        ><v-icon size="small" color="error"
+                                    <template v-slot:prepend>
+                                        <v-icon size="small" color="error"
                                             >mdi-delete</v-icon
-                                        ></template
-                                    >
+                                        >
+                                    </template>
                                     <v-list-item-title class="text-error"
                                         >Delete</v-list-item-title
                                     >
@@ -474,11 +453,11 @@ watch(
             location="bottom center"
         >
             {{ snackbar.message }}
-            <template v-slot:actions
-                ><v-btn variant="text" @click="snackbar.show = false"
+            <template v-slot:actions>
+                <v-btn variant="text" @click="snackbar.show = false"
                     >Close</v-btn
-                ></template
-            >
+                >
+            </template>
         </v-snackbar>
     </v-container>
 </template>
