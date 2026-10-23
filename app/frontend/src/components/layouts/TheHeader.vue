@@ -8,7 +8,10 @@
         class="px-0"
     >
         <v-container class="d-flex align-center pa-0" style="max-width: 95%">
-            <v-app-bar-title class="cursor-pointer" @click="$router.push('/')">
+            <v-app-bar-title
+                class="cursor-pointer"
+                @click="$router.push('/dashboard')"
+            >
                 <v-img
                     :src="logo"
                     height="40"

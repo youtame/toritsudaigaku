@@ -1,6 +1,7 @@
 <!-- src/components/dashboard/RecentFiles.vue -->
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import { fileApi, type FileItem } from "@/services/api";
 import { getFileIcon } from "@/utils/getFileIcon";
 import { useFileActions } from "@/composables/useFileActions";
@@ -13,6 +14,7 @@ import PreviewDialog from "./dialog/PreviewDialog.vue";
 
 const files = ref<FileItem[]>([]);
 const isLoading = ref(true);
+const router = useRouter();
 
 const snackbar = ref({
     show: false,
@@ -87,6 +89,20 @@ const isSharing = ref(false);
 const openShareDialog = (file: FileItem) => {
     fileToShare.value = file;
     isShareDialogVisible.value = true;
+};
+
+const getEnclosingFolder = (originalName: string) => {
+    const parts = originalName.split("/");
+    if (parts.length <= 1) return null;
+    parts.pop();
+    return parts.join("/");
+};
+
+const handleOpenEnclosingFolder = (file: FileItem) => {
+    const folderPath = getEnclosingFolder(file.originalName);
+    if (!folderPath) return;
+
+    router.push(`/dashboard/folder/${folderPath}`);
 };
 
 const handleShare = async (targetEmail: string) => {
@@ -174,7 +190,7 @@ defineExpose({ fetchFiles });
                     <span
                         class="text-truncate font-weight-bold text-decoration-underline-hover"
                     >
-                        {{ file.originalName }}
+                        {{ file.originalName.split("/").pop() }}
                     </span>
                 </v-list-item-title>
 
@@ -197,7 +213,7 @@ defineExpose({ fetchFiles });
                             ></v-btn>
                         </template>
 
-                        <v-list density="compact" width="200">
+                        <v-list density="compact" width="230">
                             <!-- Share -->
                             <v-list-item
                                 @click="openShareDialog(file)"
@@ -210,6 +226,20 @@ defineExpose({ fetchFiles });
                                 </template>
                                 <v-list-item-title class="text-primary"
                                     >Share</v-list-item-title
+                                >
+                            </v-list-item>
+
+                            <v-list-item
+                                v-if="getEnclosingFolder(file.originalName)"
+                                @click="handleOpenEnclosingFolder(file)"
+                            >
+                                <template v-slot:prepend>
+                                    <v-icon size="small"
+                                        >mdi-folder-open-outline</v-icon
+                                    >
+                                </template>
+                                <v-list-item-title
+                                    >Enclosing folder</v-list-item-title
                                 >
                             </v-list-item>
 
