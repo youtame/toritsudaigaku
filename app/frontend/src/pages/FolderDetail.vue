@@ -1,3 +1,4 @@
+<!-- src/pages/FolderDetail.vue -->
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -236,10 +237,13 @@ watch(
                 v-if="currentFolders.length > 0 || currentFiles.length > 0"
                 class="rounded-lg pa-2 mb-10"
             >
+                <!-- フォルダ一覧行 -->
                 <v-list-item
                     v-for="folder in currentFolders"
                     :key="'folder-' + folder.fullPath"
                     class="rounded-lg my-2 px-4 py-3"
+                    style="cursor: pointer"
+                    @click="handleFolderClick(folder.fullPath)"
                 >
                     <template v-slot:prepend>
                         <v-icon
@@ -249,11 +253,7 @@ watch(
                             class="me-2"
                         ></v-icon>
                     </template>
-                    <v-list-item-title
-                        class="font-weight-bold"
-                        style="cursor: pointer"
-                        @click="handleFolderClick(folder.fullPath)"
-                    >
+                    <v-list-item-title class="font-weight-bold">
                         {{ folder.name }}
                     </v-list-item-title>
                     <v-list-item-subtitle
@@ -275,11 +275,12 @@ watch(
                                     size="small"
                                     color="grey-darken-1"
                                     class="ms-2"
+                                    @click.stop
                                 ></v-btn>
                             </template>
                             <v-list density="compact" width="150">
                                 <v-list-item
-                                    @click="
+                                    @click.stop="
                                         openDeleteDialog(folder.placeholderFile)
                                     "
                                 >
@@ -297,10 +298,13 @@ watch(
                     </template>
                 </v-list-item>
 
+                <!-- ファイル一覧行 -->
                 <v-list-item
                     v-for="file in currentFiles"
                     :key="String(file.id)"
                     class="rounded-lg my-2 px-4 py-3"
+                    style="cursor: pointer"
+                    @click="handlePreview(file)"
                 >
                     <template v-slot:prepend>
                         <v-icon
@@ -321,14 +325,8 @@ watch(
                         ></v-icon>
                     </template>
 
-                    <v-list-item-title
-                        class="d-flex align-center"
-                        style="cursor: pointer"
-                        @click="handlePreview(file)"
-                    >
-                        <span
-                            class="text-truncate font-weight-bold text-decoration-underline-hover"
-                        >
+                    <v-list-item-title class="d-flex align-center">
+                        <span class="text-truncate font-weight-bold">
                             {{ file.originalName.split("/").pop() }}
                         </span>
                     </v-list-item-title>
@@ -349,11 +347,12 @@ watch(
                                     size="small"
                                     color="grey-darken-1"
                                     class="ms-2"
+                                    @click.stop
                                 ></v-btn>
                             </template>
                             <v-list density="compact" width="200">
                                 <v-list-item
-                                    @click="openShareDialog(file)"
+                                    @click.stop="openShareDialog(file)"
                                     v-if="file.isOwner"
                                 >
                                     <template v-slot:prepend>
@@ -365,7 +364,7 @@ watch(
                                         >Share</v-list-item-title
                                     >
                                 </v-list-item>
-                                <v-list-item @click="handlePreview(file)">
+                                <v-list-item @click.stop="handlePreview(file)">
                                     <template v-slot:prepend>
                                         <v-icon size="small">mdi-eye</v-icon>
                                     </template>
@@ -373,7 +372,7 @@ watch(
                                         >Preview</v-list-item-title
                                     >
                                 </v-list-item>
-                                <v-list-item @click="handleDownload(file)">
+                                <v-list-item @click.stop="handleDownload(file)">
                                     <template v-slot:prepend>
                                         <v-icon size="small"
                                             >mdi-download</v-icon
@@ -383,7 +382,9 @@ watch(
                                         >Download</v-list-item-title
                                     >
                                 </v-list-item>
-                                <v-list-item @click="openDetailsDialog(file)">
+                                <v-list-item
+                                    @click.stop="openDetailsDialog(file)"
+                                >
                                     <template v-slot:prepend>
                                         <v-icon size="small"
                                             >mdi-information-outline</v-icon
@@ -395,7 +396,7 @@ watch(
                                 </v-list-item>
                                 <v-list-item
                                     v-if="file.isOwner"
-                                    @click="openDeleteDialog(file)"
+                                    @click.stop="openDeleteDialog(file)"
                                 >
                                     <template v-slot:prepend>
                                         <v-icon size="small" color="error"

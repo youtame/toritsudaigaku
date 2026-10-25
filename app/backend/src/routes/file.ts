@@ -22,9 +22,12 @@ router.use(isAuthenticated);
 
 router.get("/", fileController.getMyFiles);
 
+router.get("/search", fileController.searchFiles);
+
 router.get("/recent", fileController.getRecentFiles);
 router.get("/recent/:limit", fileController.getRecentFiles);
 router.get("/path", fileController.getFilesPath);
+router.get("/usage", fileController.getStorageUsage);
 
 router.post("/upload-url", fileController.requestUploadUrl);
 
@@ -40,7 +43,5 @@ router.delete(
     "/:fileId/permissions/:targetUserId",
     fileController.revokePermission,
 );
-
-router.get("/usage", fileController.getStorageUsage);
 
 export default router;

@@ -9,6 +9,7 @@ import RecentFiles from "@/components/dashboard/RecentFiles.vue";
 import HomeFiles from "@/components/dashboard/HomeFiles.vue";
 import FileUploadCard from "@/components/dashboard/FileUploadCard.vue";
 import FolderCreateCard from "@/components/dashboard/FolderCreateCard.vue";
+import SearchCard from "@/components/dashboard/SearchCard.vue";
 
 const router = useRouter();
 
@@ -28,8 +29,6 @@ const fetchDashboardFiles = async () => {
             fileApi.getFilesByPath(""),
             fileApi.getStorageUsage(),
         ]);
-
-        console.log("usageDataの中身:", usageData);
 
         files.value = rootFilesData;
         storageFiles.value = usageData.usage;
@@ -90,6 +89,9 @@ onMounted(() => {
                 <v-col cols="auto"
                     ><FolderCreateCard @folder-created="handleDataChanged"
                 /></v-col>
+                <v-col cols="auto">
+                    <SearchCard />
+                </v-col>
             </v-row>
 
             <HomeFiles
