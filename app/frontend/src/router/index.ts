@@ -25,6 +25,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: "Dashboard", requiresAuth: true },
     },
     {
+        path: "/dashboard/search",
+        name: "search-results",
+        component: () => import("@/pages/SearchResults.vue"),
+        meta: { title: "Search Results", requiresAuth: true },
+    },
+    {
         path: "/dashboard/folder/:pathMatch(.*)*",
         name: "folder-detail",
         component: () => import("@/pages/FolderDetail.vue"),

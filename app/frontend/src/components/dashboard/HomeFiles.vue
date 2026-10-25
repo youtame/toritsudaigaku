@@ -155,10 +155,13 @@ const openDetailsDialog = (file: FileItem) => {
                 v-if="folders.length > 0 || rootFiles.length > 0"
                 class="rounded-lg pa-2 mb-10"
             >
+                <!-- フォルダー一覧部分 -->
                 <v-list-item
                     v-for="folder in folders"
                     :key="'folder-' + folder.name"
                     class="rounded-lg my-2 px-4 py-3"
+                    style="cursor: pointer"
+                    @click="handleFolderClick(folder.name)"
                 >
                     <template v-slot:prepend>
                         <v-icon
@@ -169,11 +172,7 @@ const openDetailsDialog = (file: FileItem) => {
                         ></v-icon>
                     </template>
 
-                    <v-list-item-title
-                        class="font-weight-bold"
-                        style="cursor: pointer"
-                        @click="handleFolderClick(folder.name)"
-                    >
+                    <v-list-item-title class="font-weight-bold">
                         {{ folder.name }}
                     </v-list-item-title>
                     <v-list-item-subtitle
@@ -195,11 +194,12 @@ const openDetailsDialog = (file: FileItem) => {
                                     size="small"
                                     color="grey-darken-1"
                                     class="ms-2"
+                                    @click.stop
                                 ></v-btn>
                             </template>
                             <v-list density="compact" width="150">
                                 <v-list-item
-                                    @click="
+                                    @click.stop="
                                         openDeleteDialog(folder.placeholderFile)
                                     "
                                 >
@@ -221,6 +221,8 @@ const openDetailsDialog = (file: FileItem) => {
                     v-for="file in rootFiles"
                     :key="String(file.id)"
                     class="rounded-lg my-2 px-4 py-3"
+                    style="cursor: pointer"
+                    @click="handlePreview(file)"
                 >
                     <template v-slot:prepend>
                         <v-icon
@@ -241,15 +243,8 @@ const openDetailsDialog = (file: FileItem) => {
                         ></v-icon>
                     </template>
 
-                    <v-list-item-title
-                        class="d-flex align-center"
-                        style="cursor: pointer"
-                        @click="handlePreview(file)"
-                        title="Click to preview"
-                    >
-                        <span
-                            class="text-truncate font-weight-bold text-decoration-underline-hover"
-                        >
+                    <v-list-item-title class="d-flex align-center">
+                        <span class="text-truncate font-weight-bold">
                             {{ file.originalName }}
                         </span>
                     </v-list-item-title>
@@ -270,11 +265,12 @@ const openDetailsDialog = (file: FileItem) => {
                                     size="small"
                                     color="grey-darken-1"
                                     class="ms-2"
+                                    @click.stop
                                 ></v-btn>
                             </template>
                             <v-list density="compact" width="200">
                                 <v-list-item
-                                    @click="openShareDialog(file)"
+                                    @click.stop="openShareDialog(file)"
                                     v-if="file.isOwner"
                                 >
                                     <template v-slot:prepend
@@ -286,7 +282,7 @@ const openDetailsDialog = (file: FileItem) => {
                                         >Share</v-list-item-title
                                     >
                                 </v-list-item>
-                                <v-list-item @click="handlePreview(file)">
+                                <v-list-item @click.stop="handlePreview(file)">
                                     <template v-slot:prepend
                                         ><v-icon size="small"
                                             >mdi-eye</v-icon
@@ -296,7 +292,7 @@ const openDetailsDialog = (file: FileItem) => {
                                         >Preview</v-list-item-title
                                     >
                                 </v-list-item>
-                                <v-list-item @click="handleDownload(file)">
+                                <v-list-item @click.stop="handleDownload(file)">
                                     <template v-slot:prepend
                                         ><v-icon size="small"
                                             >mdi-download</v-icon
@@ -306,7 +302,9 @@ const openDetailsDialog = (file: FileItem) => {
                                         >Download</v-list-item-title
                                     >
                                 </v-list-item>
-                                <v-list-item @click="openDetailsDialog(file)">
+                                <v-list-item
+                                    @click.stop="openDetailsDialog(file)"
+                                >
                                     <template v-slot:prepend
                                         ><v-icon size="small"
                                             >mdi-information-outline</v-icon
@@ -318,7 +316,7 @@ const openDetailsDialog = (file: FileItem) => {
                                 </v-list-item>
                                 <v-list-item
                                     v-if="file.isOwner"
-                                    @click="openDeleteDialog(file)"
+                                    @click.stop="openDeleteDialog(file)"
                                 >
                                     <template v-slot:prepend
                                         ><v-icon size="small" color="error"

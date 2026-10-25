@@ -1,6 +1,7 @@
 <!-- src/components/dashboard/RecentFiles.vue -->
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import { fileApi, type FileItem } from "@/services/api";
 import { getFileIcon } from "@/utils/getFileIcon";
 import { useFileActions } from "@/composables/useFileActions";
@@ -13,6 +14,7 @@ import PreviewDialog from "./dialog/PreviewDialog.vue";
 
 const files = ref<FileItem[]>([]);
 const isLoading = ref(true);
+const router = useRouter();
 
 const snackbar = ref({
     show: false,
@@ -26,7 +28,6 @@ const showSnackbar = (
     snackbar.value = { show: true, message, color };
 };
 
-// import from composables/useFileActions.ts
 const {
     isDecrypting,
     isPasswordDialogOpen,
@@ -40,7 +41,6 @@ const {
     closePreview,
 } = useFileActions(showSnackbar);
 
-// Preview handlers wrappers
 const handleDownload = async (file: FileItem) => {
     await prepareFileAccess(file, "download");
 };
@@ -87,6 +87,20 @@ const isSharing = ref(false);
 const openShareDialog = (file: FileItem) => {
     fileToShare.value = file;
     isShareDialogVisible.value = true;
+};
+
+const getEnclosingFolder = (originalName: string) => {
+    const parts = originalName.split("/");
+    if (parts.length <= 1) return null;
+    parts.pop();
+    return parts.join("/");
+};
+
+const handleOpenEnclosingFolder = (file: FileItem) => {
+    const folderPath = getEnclosingFolder(file.originalName);
+    if (!folderPath) return;
+
+    router.push(`/dashboard/folder/${folderPath}`);
 };
 
 const handleShare = async (targetEmail: string) => {
@@ -145,6 +159,8 @@ defineExpose({ fetchFiles });
                 v-for="file in files"
                 :key="String(file.id)"
                 class="rounded-lg my-2 px-4 py-3"
+                style="cursor: pointer"
+                @click="handlePreview(file)"
             >
                 <template v-slot:prepend>
                     <v-icon
@@ -165,16 +181,9 @@ defineExpose({ fetchFiles });
                     ></v-icon>
                 </template>
 
-                <v-list-item-title
-                    class="d-flex align-center"
-                    style="cursor: pointer"
-                    @click="handlePreview(file)"
-                    title="Click to preview"
-                >
-                    <span
-                        class="text-truncate font-weight-bold text-decoration-underline-hover"
-                    >
-                        {{ file.originalName }}
+                <v-list-item-title class="d-flex align-center">
+                    <span class="text-truncate font-weight-bold">
+                        {{ file.originalName.split("/").pop() }}
                     </span>
                 </v-list-item-title>
 
@@ -194,13 +203,14 @@ defineExpose({ fetchFiles });
                                 size="small"
                                 color="grey-darken-1"
                                 class="ms-2"
+                                @click.stop
                             ></v-btn>
                         </template>
 
-                        <v-list density="compact" width="200">
+                        <v-list density="compact" width="230">
                             <!-- Share -->
                             <v-list-item
-                                @click="openShareDialog(file)"
+                                @click.stop="openShareDialog(file)"
                                 v-if="file.isOwner"
                             >
                                 <template v-slot:prepend>
@@ -213,7 +223,21 @@ defineExpose({ fetchFiles });
                                 >
                             </v-list-item>
 
-                            <v-list-item @click="handlePreview(file)">
+                            <v-list-item
+                                v-if="getEnclosingFolder(file.originalName)"
+                                @click.stop="handleOpenEnclosingFolder(file)"
+                            >
+                                <template v-slot:prepend>
+                                    <v-icon size="small"
+                                        >mdi-folder-open-outline</v-icon
+                                    >
+                                </template>
+                                <v-list-item-title
+                                    >Enclosing folder</v-list-item-title
+                                >
+                            </v-list-item>
+
+                            <v-list-item @click.stop="handlePreview(file)">
                                 <template v-slot:prepend>
                                     <v-icon size="small">mdi-eye</v-icon>
                                 </template>
@@ -221,7 +245,7 @@ defineExpose({ fetchFiles });
                             </v-list-item>
 
                             <!-- Download -->
-                            <v-list-item @click="handleDownload(file)">
+                            <v-list-item @click.stop="handleDownload(file)">
                                 <template v-slot:prepend>
                                     <v-icon size="small">mdi-download</v-icon>
                                 </template>
@@ -229,7 +253,7 @@ defineExpose({ fetchFiles });
                             </v-list-item>
 
                             <!-- Details -->
-                            <v-list-item @click="openDetailsDialog(file)">
+                            <v-list-item @click.stop="openDetailsDialog(file)">
                                 <template v-slot:prepend>
                                     <v-icon size="small"
                                         >mdi-information-outline</v-icon
@@ -241,7 +265,7 @@ defineExpose({ fetchFiles });
                             <!-- Delete -->
                             <v-list-item
                                 v-if="file.isOwner"
-                                @click="openDeleteDialog(file)"
+                                @click.stop="openDeleteDialog(file)"
                             >
                                 <template v-slot:prepend>
                                     <v-icon size="small" color="error"

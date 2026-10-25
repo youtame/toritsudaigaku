@@ -477,4 +477,53 @@ export const fileService = {
             })),
         };
     },
+
+    // 11. Search Files
+    async searchFiles(userId: string, query: string, limit: number) {
+        const searchTerm = `%${query}%`;
+
+        const searchResults = await db
+            .select({
+                id: files.id,
+                userId: files.userId,
+                s3Key: files.s3Key,
+                originalName: files.originalName,
+                fileSize: files.fileSize,
+                mimeType: files.mimeType,
+                isEncrypted: files.isEncrypted,
+                encryptionMetadata: files.encryptionMetadata,
+                createdAt: files.createdAt,
+            })
+            .from(files)
+            .innerJoin(filePermissions, eq(files.id, filePermissions.fileId))
+            .where(
+                and(
+                    eq(filePermissions.userId, userId),
+                    like(files.originalName, searchTerm),
+                    not(like(files.originalName, "%/.placeholder"))
+                )
+            )
+            .orderBy(desc(files.createdAt))
+            .limit(limit);
+
+        return await Promise.all(
+            searchResults.map(async (file) => {
+                const downloadUrl = await s3Service.getDownloadUrl(
+                    file.s3Key,
+                    file.originalName,
+                );
+                return {
+                    id: file.id,
+                    originalName: file.originalName,
+                    fileSize: file.fileSize,
+                    mimeType: file.mimeType,
+                    isEncrypted: file.isEncrypted,
+                    encryptionMetadata: file.encryptionMetadata,
+                    createdAt: file.createdAt,
+                    downloadUrl: downloadUrl,
+                    isOwner: file.userId === userId,
+                };
+            }),
+        );
+    },
 };

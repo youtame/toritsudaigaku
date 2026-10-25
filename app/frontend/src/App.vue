@@ -2,14 +2,13 @@
 <template>
     <v-app>
         <TheHeader @toggle-drawer="drawer = !drawer" v-if="isNotLogin" />
-
         <TheDrawer v-model="drawer" v-if="isNotLogin" />
 
         <v-main :class="['flex-grow-1 d-flex', { 'main-view': isNotLogin }]">
             <router-view />
         </v-main>
 
-        <TheFooter v-if="isNotLogin" />
+        <TheFooter v-if="isRoot" />
     </v-app>
 </template>
 
@@ -37,7 +36,12 @@ const isNotLogin = computed(() => {
     const normalizedPath = route.path.replace(/^\/|\/$/g, "");
     return normalizedPath !== "login";
 });
+
+const isRoot = computed(() => {
+    return route.path === "/";
+});
 </script>
+
 <style lang="css" scoped>
 .main-view {
     width: 95%;

@@ -222,4 +222,24 @@ export const fileApi = {
 
         return await response.json();
     },
+
+    async searchFiles(query: string): Promise<FileItem[]> {
+        const response = await fetch(
+            `${backendUrl}/search?q=${encodeURIComponent(query)}`,
+            {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+            },
+        );
+
+        if (!response.ok) {
+            throw new Error("Error: Failed to search files.");
+        }
+
+        const data = await response.json();
+        return data.files;
+    },
 };

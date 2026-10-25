@@ -252,4 +252,28 @@ export const fileController = {
                 .json({ error: "Failed to retrieve storage usage" });
         }
     },
+
+    async searchFiles(req: Request, res: Response) {
+        try {
+            const userId = getUserId(req);
+            if (!userId) {
+                return res.status(401).json({ error: "Unauthorized" });
+            }
+
+            const query = (req.query.q as string) || "";
+            if (!query.trim()) {
+                return res.status(400).json({ error: "Search query is required" });
+            }
+
+            const targetPath = (req.query.path as string) || undefined;
+            const limit = 20;
+
+            const files = await fileService.searchFiles(userId, query, targetPath, limit);
+
+            return res.status(200).json({ files });
+        } catch (error: any) {
+            console.error("Error searching files:", error);
+            return res.status(500).json({ error: "Failed to search files" });
+        }
+    },
 };
