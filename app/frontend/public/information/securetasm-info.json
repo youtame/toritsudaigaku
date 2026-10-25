@@ -1,5 +1,12 @@
 [
     {
+        "id": 202610251400,
+        "title": "Performance, UI, and feature improvements",
+        "information": "Secure TASM now supports HTTP/3, resulting in faster performance. The user interface when clicking a filename has been improved for better clarity. Additionally, a new file search feature has been added.",
+        "information_detail": "Secure TASM now supports HTTP/3, resulting in faster performance. The user interface when clicking a filename has been improved for better clarity. Additionally, a new file search feature has been added.",
+        "info_date": "2026-10-25-14:00"
+    },
+    {
         "id": 202610190930,
         "title": "Improve Performance",
         "information": "Secure TASM imporove our site performance this time. Check it out!",
@@ -12,12 +19,5 @@
         "information": "The site will be operational from tomorrow. Some functions will be available",
         "information_detail": "The site will be operational from tomorrow. Some functions will be available",
         "info_date": "2026-05-25-00:00"
-    },
-    {
-        "id": 202605250001,
-        "title": "Notice of Postponement",
-        "information": "Although the site was scheduled to be operational from today, it has been postponed because completion was not completed in time",
-        "information_detail": "Although the site was scheduled to be operational from today, it has been postponed because completion was not completed in time. The site will be operational from tomorrow.",
-        "info_date": "2026-05-25-00:01"
     }
 ]
