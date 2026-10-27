@@ -1,0 +1,23 @@
+:root {
+    --vp-c-brand-1: #00bc74;
+    --vp-c-brand-2: #26b8c9;
+    --vp-c-brand-3: #00bc74;
+    --vp-c-brand: #00bc74;
+
+    --vp-home-hero-image-filter: blur(50px);
+
+    .VPHero .image-src {
+        max-height: none !important;
+        width: 90% !important;
+        max-width: 400px !important;
+    }
+
+    img {
+        border-radius: 10px;
+    }
+
+    .vp-doc table {
+        display: table;
+        width: 100%;
+    }
+}
